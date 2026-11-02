@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#101A2C"/>
+      <stop offset="100%" stop-color="#080B14"/>
+    </linearGradient>
+    <linearGradient id="ring1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#36D9FF"/>
+      <stop offset="100%" stop-color="#3887FF"/>
+    </linearGradient>
+    <linearGradient id="skin1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFDFBA"/>
+      <stop offset="100%" stop-color="#F5B288"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="url(#bg1)" stroke="url(#ring1)" stroke-width="3"/>
+  <circle cx="60" cy="60" r="48" fill="#18253D"/>
+  <!-- Body/Shoulders -->
+  <path d="M26 108 C28 85 42 78 60 78 C78 78 92 85 94 108" fill="#3887FF"/>
+  <path d="M42 78 L60 92 L78 78 Z" fill="#1C3F7A"/>
+  <!-- Head & Neck -->
+  <rect x="52" y="66" width="16" height="16" rx="4" fill="url(#skin1)"/>
+  <ellipse cx="60" cy="52" rx="20" ry="24" fill="url(#skin1)"/>
+  <!-- Hair (Cool Short Style) -->
+  <path d="M38 50 C38 32 46 26 60 26 C74 26 82 32 82 50 C80 40 70 34 60 34 C48 34 40 42 38 50 Z" fill="#202A3E"/>
+  <path d="M40 38 Q50 30 64 34 Q76 34 80 42 Q70 32 58 32 Q46 32 40 38 Z" fill="#36D9FF"/>
+  <!-- Eyes & Eyebrows -->
+  <ellipse cx="52" cy="52" rx="2.5" ry="3.5" fill="#152136"/>
+  <ellipse cx="68" cy="52" rx="2.5" ry="3.5" fill="#152136"/>
+  <circle cx="53" cy="51" r="1" fill="#FFFFFF"/>
+  <circle cx="69" cy="51" r="1" fill="#FFFFFF"/>
+  <!-- Smile -->
+  <path d="M54 62 Q60 67 66 62" stroke="#B0654B" stroke-width="2" stroke-linecap="round"/>
+  <!-- Headphones -->
+  <rect x="36" y="44" width="6" height="16" rx="3" fill="#36D9FF"/>
+  <rect x="78" y="44" width="6" height="16" rx="3" fill="#36D9FF"/>
+  <path d="M39 44 C39 28 81 28 81 44" stroke="#36D9FF" stroke-width="3" fill="none"/>
+</svg>
+

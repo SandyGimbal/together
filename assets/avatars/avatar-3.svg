@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141E33"/>
+      <stop offset="100%" stop-color="#080B14"/>
+    </linearGradient>
+    <linearGradient id="ring3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3887FF"/>
+      <stop offset="100%" stop-color="#36D9FF"/>
+    </linearGradient>
+    <linearGradient id="skin3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F2D0B6"/>
+      <stop offset="100%" stop-color="#D9A986"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="url(#bg3)" stroke="url(#ring3)" stroke-width="3"/>
+  <circle cx="60" cy="60" r="48" fill="#141E2F"/>
+  <!-- Jacket -->
+  <path d="M26 108 C28 85 40 76 60 76 C80 76 92 85 94 108" fill="#162A4D"/>
+  <path d="M48 76 L60 96 L72 76" fill="#3887FF"/>
+  <!-- Head & Neck -->
+  <rect x="52" y="65" width="16" height="15" rx="4" fill="url(#skin3)"/>
+  <ellipse cx="60" cy="51" rx="19" ry="23" fill="url(#skin3)"/>
+  <!-- Hair (Messy/Wavy modern) -->
+  <path d="M38 48 C36 30 46 22 60 22 C76 22 84 32 82 48 C78 36 68 32 58 32 C48 32 40 40 38 48 Z" fill="#1C1824"/>
+  <path d="M44 32 Q52 24 64 26 Q74 24 76 34" fill="#1C1824"/>
+  <!-- Glasses -->
+  <rect x="44" y="48" width="14" height="11" rx="3" fill="none" stroke="#36D9FF" stroke-width="2"/>
+  <rect x="62" y="48" width="14" height="11" rx="3" fill="none" stroke="#36D9FF" stroke-width="2"/>
+  <line x1="58" y1="53" x2="62" y2="53" stroke="#36D9FF" stroke-width="2"/>
+  <!-- Eyes -->
+  <ellipse cx="51" cy="53" rx="2" ry="2.5" fill="#152136"/>
+  <ellipse cx="69" cy="53" rx="2" ry="2.5" fill="#152136"/>
+  <!-- Confident Smile -->
+  <path d="M54 63 Q60 67 66 63" stroke="#A66048" stroke-width="2" stroke-linecap="round"/>
+</svg>
+

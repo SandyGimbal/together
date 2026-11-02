@@ -1,0 +1,47 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['displayName', 'email', 'avatar'])"
+      }
+    },
+    "pairingCodes": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.child('createdBy').val() === auth.uid || newData.child('partnerUid').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['coupleId', 'createdBy', 'status'])"
+      }
+    },
+    "couples": {
+      "$coupleId": {
+        ".read": "auth != null && (data.child('members/' + auth.uid).exists() || !data.exists())",
+        ".write": "auth != null && (data.child('members/' + auth.uid).exists() || !data.exists() || newData.child('members/' + auth.uid).exists())",
+        "members": {
+          "$memberUid": {
+            ".write": "auth != null && (auth.uid === $memberUid || !data.exists())"
+          }
+        },
+        "locations": {
+          "$memberUid": {
+            ".read": "auth != null && root.child('couples/' + $coupleId + '/members/' + auth.uid).exists()",
+            ".write": "auth != null && auth.uid === $memberUid",
+            ".validate": "newData.hasChildren(['latitude', 'longitude', 'timestamp', 'sharingEnabled'])"
+          }
+        },
+        "history": {
+          "$memberUid": {
+            ".read": "auth != null && root.child('couples/' + $coupleId + '/members/' + auth.uid).exists()",
+            ".write": "auth != null && auth.uid === $memberUid"
+          }
+        },
+        "settings": {
+          ".read": "auth != null && root.child('couples/' + $coupleId + '/members/' + auth.uid).exists()",
+          ".write": "auth != null && root.child('couples/' + $coupleId + '/members/' + auth.uid).exists()"
+        }
+      }
+    }
+  }
+}
+

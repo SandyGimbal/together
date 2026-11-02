@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#221226"/>
+      <stop offset="100%" stop-color="#080B14"/>
+    </linearGradient>
+    <linearGradient id="ring2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF75B8"/>
+      <stop offset="100%" stop-color="#9277FF"/>
+    </linearGradient>
+    <linearGradient id="skin2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFE0D6"/>
+      <stop offset="100%" stop-color="#F2B7A8"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="url(#bg2)" stroke="url(#ring2)" stroke-width="3"/>
+  <circle cx="60" cy="60" r="48" fill="#26182E"/>
+  <!-- Hair Behind -->
+  <path d="M34 50 C30 78 35 98 42 108 L78 108 C85 98 90 78 86 50 Z" fill="#2E1828"/>
+  <!-- Body/Dress -->
+  <path d="M28 108 C30 86 44 80 60 80 C76 80 90 86 92 108" fill="#FF75B8"/>
+  <!-- Head & Neck -->
+  <rect x="53" y="67" width="14" height="15" rx="4" fill="url(#skin2)"/>
+  <ellipse cx="60" cy="53" rx="19" ry="23" fill="url(#skin2)"/>
+  <!-- Hair Front (Long flowing with bangs) -->
+  <path d="M36 50 C36 32 46 25 60 25 C74 25 84 32 84 50 C82 36 74 33 60 33 C46 33 38 36 36 50 Z" fill="#4A1E3E"/>
+  <path d="M36 46 Q40 68 44 78 Q47 50 49 43" fill="#4A1E3E"/>
+  <path d="M84 46 Q80 68 76 78 Q73 50 71 43" fill="#4A1E3E"/>
+  <!-- Hair Highlight -->
+  <path d="M42 34 Q54 28 66 30 Q78 32 80 40 Q70 32 58 31 Q46 31 42 34 Z" fill="#FF75B8"/>
+  <!-- Eyes & Blush -->
+  <ellipse cx="52" cy="53" rx="2.5" ry="3.5" fill="#2E1828"/>
+  <ellipse cx="68" cy="53" rx="2.5" ry="3.5" fill="#2E1828"/>
+  <circle cx="53" cy="52" r="1" fill="#FFFFFF"/>
+  <circle cx="69" cy="52" r="1" fill="#FFFFFF"/>
+  <ellipse cx="48" cy="60" rx="3.5" ry="2" fill="#FF75B8" opacity="0.6"/>
+  <ellipse cx="72" cy="60" rx="3.5" ry="2" fill="#FF75B8" opacity="0.6"/>
+  <!-- Smile -->
+  <path d="M55 62 Q60 67 65 62" stroke="#B85568" stroke-width="2" stroke-linecap="round"/>
+  <!-- Hair Clip Heart -->
+  <path d="M74 38 C72 36 69 37 69 40 C69 43 74 46 74 46 C74 46 79 43 79 40 C79 37 76 36 74 38 Z" fill="#FF75B8"/>
+</svg>
+

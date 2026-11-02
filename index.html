@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TOGETHER — Always Connected, Wherever You Are</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo.svg">
+  
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animation.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <style>
+    /* Specific Landing Page Styling */
+    .landing-hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 7rem 2rem 4rem;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 1.1rem;
+      background: rgba(56, 135, 255, 0.12);
+      border: 1px solid rgba(56, 135, 255, 0.35);
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--cyan-accent);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 0 20px rgba(54, 217, 255, 0.2);
+    }
+
+    .hero-title {
+      font-size: 4rem;
+      line-height: 1.12;
+      max-width: 900px;
+      margin-bottom: 1.5rem;
+      font-weight: 800;
+    }
+
+    .hero-description {
+      font-size: 1.25rem;
+      max-width: 680px;
+      margin-bottom: 2.5rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .hero-cta-group {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 4rem;
+      z-index: 10;
+    }
+
+    /* Cinematic Earth Orb */
+    .earth-visual-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 1.5rem auto 3rem;
+    }
+    .earth-globe {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #22487A 0%, #0D1C34 50%, #050912 100%);
+      position: relative;
+      box-shadow: 0 0 80px rgba(56, 135, 255, 0.5), inset -20px -20px 50px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+    }
+    .earth-globe::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100" opacity="0.3"><path fill="%2336D9FF" d="M20,30 Q40,10 70,30 T120,40 T180,20 T150,80 T80,70 T20,30 Z"/></svg>');
+      background-size: 240px 120px;
+      border-radius: 50%;
+      animation: earthSpin 28s linear infinite;
+    }
+    @keyframes earthSpin {
+      from { background-position: 0 0; }
+      to { background-position: 240px 0; }
+    }
+    .earth-orbit-ring-1 {
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      right: -20px;
+      bottom: -20px;
+      border: 1.5px dashed rgba(54, 217, 255, 0.4);
+      border-radius: 50%;
+      transform: rotate(25deg);
+      pointer-events: none;
+      animation: spinRotate 20s linear infinite;
+    }
+    .earth-orbit-ring-2 {
+      position: absolute;
+      top: -35px;
+      left: -35px;
+      right: -35px;
+      bottom: -35px;
+      border: 1.5px dashed rgba(255, 117, 184, 0.35);
+      border-radius: 50%;
+      transform: rotate(-35deg);
+      pointer-events: none;
+      animation: spinRotateCounter 26s linear infinite;
+    }
+
+    /* Section Highlights */
+    .landing-section {
+      padding: 6rem 2rem;
+      max-width: 1240px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    .section-tag {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cyan-accent);
+      margin-bottom: 0.5rem;
+    }
+    .section-title {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .section-desc {
+      font-size: 1.1rem;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.75rem;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      backdrop-filter: var(--backdrop-blur);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2.2rem 1.8rem;
+      transition: all var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card:hover {
+      border-color: rgba(56, 135, 255, 0.4);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(56, 135, 255, 0.2);
+    }
+    .feature-icon-box {
+      width: 54px;
+      height: 54px;
+      border-radius: var(--radius-sm);
+      background: rgba(56, 135, 255, 0.15);
+      border: 1px solid rgba(56, 135, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan-accent);
+      margin-bottom: 1.5rem;
+    }
+    .feature-card.romantic .feature-icon-box {
+      background: rgba(255, 117, 184, 0.15);
+      border-color: rgba(255, 117, 184, 0.35);
+      color: var(--romantic-pink);
+    }
+    .feature-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .feature-text {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Steps How it works */
+    .steps-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      position: relative;
+    }
+    .step-card {
+      background: rgba(16, 26, 44, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      position: relative;
+    }
+    .step-number {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--gradient-brand);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin: 0 auto 1.25rem;
+      box-shadow: 0 0 15px rgba(56, 135, 255, 0.5);
+    }
+
+    /* Footer */
+    .app-footer {
+      border-top: 1px solid var(--border-subtle);
+      background: #060910;
+      padding: 4rem 2rem 2.5rem;
+      text-align: center;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin: 1.5rem 0 2rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+      .hero-title { font-size: 2.6rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps-container { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .hero-title { font-size: 2.2rem; }
+      .steps-container { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Space Background & Stars Canvas -->
+  <div class="space-background"></div>
+  <canvas id="starfield-canvas" class="starfield-canvas"></canvas>
+  <div class="ambient-orb orb-blue"></div>
+  <div class="ambient-orb orb-pink"></div>
+  <div class="ambient-orb orb-purple"></div>
+
+  <!-- Navigation Bar -->
+  <header class="app-nav">
+    <div class="brand-group">
+      <img src="assets/icons/logo.svg" alt="TOGETHER Logo" class="brand-logo-img">
+      <div>
+        <div class="brand-name"><span class="gradient-blue-text">TO</span><span class="gradient-pink-text">GETHER</span></div>
+        <div class="brand-tagline-sub">Geospatial Couple Platform</div>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <a href="#features" class="nav-link">Fitur</a>
+      <a href="#how-it-works" class="nav-link">Cara Kerja</a>
+      <a href="login.html" class="btn btn-secondary btn-sm">Masuk</a>
+      <a href="register.html" class="btn btn-primary btn-sm">Mulai Gratis</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="landing-hero">
+    <div class="hero-badge stagger-1">
+      <i data-lucide="satellite" style="width: 16px; height: 16px;"></i>
+      <span>Next-Gen Satellite Tracking for Couples</span>
+    </div>
+
+    <h1 class="hero-title stagger-2">
+      Always Connected, <br>
+      <span class="gradient-text">Wherever You Are.</span>
+    </h1>
+
+    <p class="hero-description stagger-3">
+      Platform berbagi lokasi realtime eksklusif dua pasangan berbasis citra satelit resolusi tinggi, GPS presisi, dan antarmuka geospatial intelligence yang romantis.
+    </p>
+
+    <!-- Earth Visual Atmosphere -->
+    <div class="earth-visual-container stagger-4">
+      <div class="earth-orbit-ring-1"></div>
+      <div class="earth-orbit-ring-2"></div>
+      <div class="earth-globe globe-atmosphere"></div>
+    </div>
+
+    <!-- Hero CTA Buttons -->
+    <div class="hero-cta-group stagger-5">
+      <a href="register.html" class="btn btn-primary btn-lg">
+        <i data-lucide="heart" style="width: 20px; height: 20px; fill: #fff;"></i>
+        <span>Hubungkan Pasangan</span>
+      </a>
+      <a href="dashboard.html" class="btn btn-secondary btn-lg">
+        <i data-lucide="compass" style="width: 20px; height: 20px;"></i>
+        <span>Buka Live Dashboard</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Feature Showcase -->
+  <section id="features" class="landing-section">
+    <div class="section-header">
+      <div class="section-tag">Keunggulan Utama</div>
+      <h2 class="section-title">Teknologi Geospatial Bertemu Romantisme</h2>
+      <p class="section-desc">Dibangun dengan standar keamanan tertinggi, performa Leaflet.js yang mulus, dan visual citra satelit nyata.</p>
+    </div>
+
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="satellite" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 class="feature-title">Citra Satelit Beresolusi Tinggi</h3>
+        <p class="feature-text">Gunakan citra satelit resmi Esri World Imagery, Street View, Hybrid jalan, dan kontur medan untuk mengenali posisi pasangan secara akurat.</p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-card romantic">
+        <div class="feature-icon-box">
+          <i data-lucide="activity" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 class="feature-title">Sinkronisasi Realtime Dua Arah</h3>
+        <p class="feature-text">Didukung Firebase Realtime Database dan Geolocation API dengan algoritma throttling cerdas untuk hemat baterai dan paket data.</p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="shield-check" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 class="feature-title">Privasi & Keamanan Ketat</h3>
+        <p class="feature-text">Hanya dua orang dalam satu Couple Room. Dilengkapi Firebase Security Rules, mode jeda lokasi, dan ghost mode yang dapat Anda kendalikan kapan saja.</p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="feature-card romantic">
+        <div class="feature-icon-box">
+          <i data-lucide="navigation-2" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 class="feature-title">Kalkulator Jarak Haversine</h3>
+        <p class="feature-text">Ketahui jarak eksak antara Anda dan pasangan dalam meter atau kilometer beserta arah kompas dan estimasi pergerakan.</p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="bell-ring" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 class="feature-title">Notifikasi Kedatangan Geofence</h3>
+        <p class="feature-text">Dapatkan peringatan lembut dan lonceng romantis saat pasangan tiba di rumah, kampus, kantor, atau ketika kalian sudah saling berdekatan.</p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="feature-card romantic">
+        <div class="feature-icon-box">
+          <i data-lucide="battery-charging" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h3 class="feature-title">Telemetri Pasangan Lengkap</h3>
+        <p class="feature-text">Pantau persentase baterai ponsel pasangan, status pengisian daya, kecepatan berkendara, dan indikator kesegaran lokasi (live/recent/offline).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="landing-section">
+    <div class="section-header">
+      <div class="section-tag">Alur Penggunaan</div>
+      <h2 class="section-title">4 Langkah Mudah Terhubung</h2>
+      <p class="section-desc">Hanya butuh 60 detik untuk mulai memantau dan saling menjaga satu sama lain.</p>
+    </div>
+
+    <div class="steps-container">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Buat Akun</h4>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">Daftar dengan nama Anda dan pilih avatar pasangan yang menarik.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Buat Couple Room</h4>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">Sistem akan membuat kode pairing unik seperti <code>TOG-8F29A4</code>.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Bagikan Kode</h4>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">Kirim kode ke pasangan Anda untuk dimasukkan di perangkatnya.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">4</div>
+        <h4 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Terhubung Selamanya</h4>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">Izinkan akses GPS dan nikmati tampilan satelit realtime bersama.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="brand-group" style="justify-content: center; margin-bottom: 1rem;">
+      <img src="assets/icons/logo.svg" alt="TOGETHER" class="brand-logo-img">
+      <span class="brand-name"><span class="gradient-blue-text">TO</span><span class="gradient-pink-text">GETHER</span></span>
+    </div>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">"Always Connected, Wherever You Are."</p>
+
+    <div class="footer-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="login.html">Login</a>
+      <a href="register.html">Daftar Akun</a>
+      <a href="pairing.html">Pairing Hub</a>
+    </div>
+
+    <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 2rem;">
+      &copy; 2026 TOGETHER Platform. Citra Satelit resmi oleh Esri & OpenStreetMap.
+    </p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Dashboard — TOGETHER Satellite Geospatial Platform</title>
+  
+  <link rel="icon" type="image/svg+xml" href="assets/icons/logo.svg">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet.js Mapping Library (CSS & JS) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Firebase Compat Client SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animation.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <style>
+    /* Specific Dashboard Polish */
+    .telemetry-card {
+      background: rgba(16, 26, 44, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      transition: all var(--transition-smooth);
+    }
+    .telemetry-card:hover {
+      border-color: rgba(56, 135, 255, 0.35);
+      background: rgba(20, 32, 54, 0.85);
+    }
+    .telemetry-card.partner-card {
+      border-left: 3px solid var(--romantic-pink);
+    }
+    .telemetry-card.my-card {
+      border-left: 3px solid var(--cyan-accent);
+    }
+    .telemetry-card.distance-card {
+      background: linear-gradient(135deg, rgba(255, 117, 184, 0.12) 0%, rgba(56, 135, 255, 0.12) 100%);
+      border: 1px solid rgba(255, 117, 184, 0.35);
+    }
+    .telemetry-profile-header {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      margin-bottom: 0.9rem;
+    }
+    .telemetry-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan-accent);
+      background: #080B14;
+      flex-shrink: 0;
+    }
+    .partner-card .telemetry-avatar {
+      border-color: var(--romantic-pink);
+      box-shadow: 0 0 10px rgba(255, 117, 184, 0.5);
+    }
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      font-size: 0.82rem;
+    }
+    .telemetry-item {
+      background: rgba(8, 14, 26, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-xs);
+      padding: 0.5rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .telemetry-label {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .telemetry-val {
+      color: var(--pure-white);
+      font-weight: 600;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .distance-large-num {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .switch-toggle-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0;
+    }
+    .toggle-checkbox {
+      appearance: none;
+      width: 42px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-full);
+      position: relative;
+      cursor: pointer;
+      outline: none;
+      transition: background var(--transition-fast);
+    }
+    .toggle-checkbox::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform var(--transition-fast);
+    }
+    .toggle-checkbox:checked {
+      background: var(--cyan-accent);
+      box-shadow: 0 0 10px rgba(54, 217, 255, 0.5);
+    }
+    .toggle-checkbox:checked::before {
+      transform: translateX(18px);
+    }
+  </style>
+</head>
+<body class="no-scroll">
+
+  <!-- 1. Cinematic Loading Screen -->
+  <div id="cinematic-loader">
+    <div class="loader-globe-container">
+      <div class="loader-orbit-ring"></div>
+      <div class="loader-orbit-ring-pink"></div>
+      <img src="assets/icons/logo.svg" alt="TOGETHER" style="width: 100%; height: 100%; filter: drop-shadow(0 0 25px rgba(56, 135, 255, 0.8));">
+    </div>
+    <div style="font-size: 1.8rem; font-weight: 800; letter-spacing: 0.08em; margin-bottom: 0.4rem;">
+      <span class="gradient-blue-text">TO</span><span class="gradient-pink-text">GETHER</span>
+    </div>
+    <p style="color: var(--cyan-accent); font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase;">
+      Menghubungkan Citra Satelit & Sensor GPS...
+    </p>
+    <div class="loader-progress-bar">
+      <div class="loader-progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Main Viewport Layout -->
+  <div class="dashboard-layout">
+
+    <!-- Tablet / Mobile Backdrop for Sidebar -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+    <!-- 2. Desktop Left Sidebar Panel -->
+    <aside id="sidebar-panel" class="sidebar-panel">
+      <!-- Header -->
+      <div class="sidebar-header">
+        <div class="brand-group">
+          <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem;">
+            <img src="assets/icons/logo.svg" alt="TOGETHER" class="brand-logo-img" style="width: 32px; height: 32px;">
+            <span class="brand-name" style="font-size: 1.2rem;"><span class="gradient-blue-text">TO</span><span class="gradient-pink-text">GETHER</span></span>
+          </a>
+        </div>
+        <div id="connection-status-pill" class="status-badge live">
+          <span class="status-dot"></span> Cloud Sync Aktif
+        </div>
+      </div>
+
+      <!-- Scrollable Telemetry List -->
+      <div class="sidebar-content">
+
+        <!-- Card A: Distance Between Us -->
+        <div class="telemetry-card distance-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--romantic-pink); display: flex; align-items: center; gap: 0.4rem;">
+              <i data-lucide="heart" style="width: 14px; height: 14px; fill: var(--romantic-pink);"></i> Jarak Antara Kita
+            </span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">Haversine</span>
+          </div>
+          <div class="distance-large-num gradient-text couple-distance-value">--</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i data-lucide="compass" style="width: 15px; height: 15px; color: var(--cyan-accent);"></i>
+            <span class="couple-direction-value">Menghitung arah...</span>
+          </div>
+        </div>
+
+        <!-- Card B: Partner Telemetry -->
+        <div class="telemetry-card partner-card">
+          <div class="telemetry-profile-header">
+            <img id="partner-avatar-img" class="telemetry-avatar" src="assets/avatars/avatar-2.svg" alt="Partner">
+            <div style="flex: 1; overflow: hidden;">
+              <div id="partner-display-name" style="font-size: 1.05rem; font-weight: 700; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                Pasangan Anda
+              </div>
+              <div id="partner-status-badge" class="status-badge recent" style="margin-top: 0.2rem; font-size: 0.72rem;">
+                <span class="status-dot"></span> Mencari sinyal...
+              </div>
+            </div>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="telemetry-item" style="grid-column: span 2;">
+              <span class="telemetry-label">Koordinat Satelit</span>
+              <span id="partner-coordinates" class="telemetry-val">--</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Kecepatan</span>
+              <span id="partner-speed" class="telemetry-val">--</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Akurasi GPS</span>
+              <span id="partner-accuracy" class="telemetry-val">--</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Baterai Ponsel</span>
+              <span id="partner-battery" class="telemetry-val">--</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Pembaruan</span>
+              <span id="partner-last-updated" class="telemetry-val">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card C: My Telemetry -->
+        <div class="telemetry-card my-card">
+          <div class="telemetry-profile-header">
+            <img id="my-avatar-img" class="telemetry-avatar" src="assets/avatars/avatar-1.svg" alt="Me">
+            <div style="flex: 1; overflow: hidden;">
+              <div id="my-display-name" style="font-size: 1.05rem; font-weight: 700; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                Saya
+              </div>
+              <div id="sharing-status-badge" class="status-badge live" style="margin-top: 0.2rem; font-size: 0.72rem;">
+                <span class="status-dot"></span> Berbagi Aktif
+              </div>
+            </div>
+            <button id="btn-copy-coords" class="btn btn-ghost btn-sm" title="Salin Koordinat Saya" style="padding: 0.4rem;">
+              <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+            </button>
+          </div>
+
+          <div class="telemetry-grid">
+            <div class="telemetry-item" style="grid-column: span 2;">
+              <span class="telemetry-label">Koordinat Saya</span>
+              <span id="my-coordinates" class="telemetry-val">Mencari GPS...</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Kecepatan</span>
+              <span id="my-speed" class="telemetry-val">0 km/h</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Akurasi GPS</span>
+              <span id="my-accuracy" class="telemetry-val">±-- m</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Baterai Saya</span>
+              <span id="my-battery" class="telemetry-val">--</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Waktu Lokal</span>
+              <span id="my-last-updated" class="telemetry-val">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card D: Privacy & Controls -->
+        <div class="telemetry-card">
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem;">
+            Kendali Privasi
+          </div>
+          <div class="switch-toggle-wrapper">
+            <div>
+              <div style="font-weight: 600; font-size: 0.9rem;">Bagikan Lokasi</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Jeda untuk membekukan titik Anda</div>
+            </div>
+            <input type="checkbox" id="toggle-share-location" class="toggle-checkbox" checked>
+          </div>
+
+          <div style="margin-top: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <button id="btn-enable-notifications" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start;">
+              <i data-lucide="bell" style="width: 15px; height: 15px; color: var(--cyan-accent);"></i>
+              <span>Aktifkan Lonceng Kedatangan</span>
+            </button>
+            <button id="btn-leave-room" class="btn btn-ghost btn-sm" style="width: 100%; justify-content: flex-start; color: #EF4444;">
+              <i data-lucide="user-x" style="width: 15px; height: 15px;"></i>
+              <span>Tinggalkan Couple Room</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer User Bar -->
+      <div class="sidebar-footer">
+        <a href="pairing.html" class="btn btn-ghost btn-sm" style="color: var(--cyan-accent);">
+          <i data-lucide="link" style="width: 14px; height: 14px;"></i> Room Info
+        </a>
+        <button id="btn-logout" class="btn btn-ghost btn-sm" style="color: var(--text-muted);">
+          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Keluar
+        </button>
+      </div>
+    </aside>
+
+    <!-- 3. Satellite Map Viewport Container -->
+    <main class="map-viewport-container">
+      
+      <!-- Satellite Scanner Line Effect -->
+      <div id="map-scanner-line" class="map-scanner-line"></div>
+
+      <!-- Floating Top Dynamic Bar -->
+      <div class="floating-top-bar">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <button id="btn-toggle-sidebar" class="map-control-btn" title="Buka Menu Telemetri" style="display: none;">
+            <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+          </button>
+          <div class="floating-partner-pill">
+            <img id="top-bar-partner-avatar" src="assets/avatars/avatar-2.svg" alt="Partner" style="width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--romantic-pink);">
+            <div>
+              <div id="top-bar-partner-name" style="font-weight: 700; font-size: 0.9rem; line-height: 1.2;">Pasangan</div>
+              <div id="top-bar-distance-text" style="font-size: 0.72rem; color: var(--cyan-accent); font-weight: 600;">-- dari Anda</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <button id="btn-scanner" class="map-control-btn" title="Toggle Scanner Radar Satelit">
+            <i data-lucide="radar" style="width: 18px; height: 18px;"></i>
+          </button>
+          <button id="btn-fullscreen" class="map-control-btn" title="Layar Penuh">
+            <i data-lucide="maximize" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Canvas -->
+      <div id="map"></div>
+
+      <!-- Floating Map Action Controls (Right Bottom) -->
+      <div class="floating-map-controls">
+        <button id="btn-locate-me" class="map-control-btn" title="Pusatkan Lokasi Saya">
+          <i data-lucide="crosshair" style="width: 20px; height: 20px; color: var(--cyan-accent);"></i>
+        </button>
+        <button id="btn-locate-partner" class="map-control-btn" title="Pusatkan Lokasi Pasangan">
+          <i data-lucide="heart" style="width: 20px; height: 20px; color: var(--romantic-pink);"></i>
+        </button>
+        <button id="btn-fit-both" class="map-control-btn" title="Tampilkan Kedua Pasangan">
+          <i data-lucide="users" style="width: 20px; height: 20px; color: var(--soft-purple);"></i>
+        </button>
+        <button id="btn-layers-toggle" class="map-control-btn" title="Ganti Tampilan Peta Satelit">
+          <i data-lucide="layers" style="width: 20px; height: 20px;"></i>
+        </button>
+        <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 2px 0;"></div>
+        <button id="btn-zoom-in" class="map-control-btn" title="Perbesar Peta">
+          <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
+        </button>
+        <button id="btn-zoom-out" class="map-control-btn" title="Perkecil Peta">
+          <i data-lucide="minus" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <!-- Layer Picker Menu Dropdown -->
+      <div id="layer-picker-menu" class="layer-picker-menu">
+        <button type="button" class="layer-card-btn active" data-layer="satellite">
+          <i data-lucide="satellite" class="layer-card-icon"></i>
+          <span>Satelit Murni</span>
+        </button>
+        <button type="button" class="layer-card-btn" data-layer="hybrid">
+          <i data-lucide="map-pin" class="layer-card-icon"></i>
+          <span>Hybrid Label</span>
+        </button>
+        <button type="button" class="layer-card-btn" data-layer="street">
+          <i data-lucide="map" class="layer-card-icon"></i>
+          <span>Peta Jalan</span>
+        </button>
+        <button type="button" class="layer-card-btn" data-layer="terrain">
+          <i data-lucide="mountain" class="layer-card-icon"></i>
+          <span>Kontur Medan</span>
+        </button>
+      </div>
+
+      <!-- 4. Mobile Expandable Bottom Sheet (< 768px) -->
+      <div id="mobile-bottom-sheet" class="mobile-bottom-sheet">
+        <div id="bottom-sheet-handle" class="bottom-sheet-drag-handle"></div>
+        
+        <!-- Preview Bar Always Visible on Mobile Bottom -->
+        <div id="bottom-sheet-preview" class="bottom-sheet-preview-bar">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <img src="assets/avatars/avatar-2.svg" alt="Partner" style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--romantic-pink);">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem;">Jarak Kita: <span class="gradient-text couple-distance-value">--</span></div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);"><span class="couple-direction-value">Menghitung...</span></div>
+            </div>
+          </div>
+          <i data-lucide="chevron-up" style="width: 20px; height: 20px; color: var(--text-muted);"></i>
+        </div>
+
+        <!-- Expanded Sheet Content -->
+        <div class="bottom-sheet-scrollable-content">
+          <!-- Mobile Partner Telemetry -->
+          <div class="telemetry-card partner-card">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.6rem; color: var(--romantic-pink);">
+              Data Telemetri Pasangan
+            </div>
+            <div class="telemetry-grid">
+              <div class="telemetry-item" style="grid-column: span 2;">
+                <span class="telemetry-label">Koordinat</span>
+                <span class="telemetry-val" id="mobile-partner-coords">--</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="telemetry-label">Kecepatan</span>
+                <span class="telemetry-val" id="mobile-partner-speed">--</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="telemetry-label">Baterai</span>
+                <span class="telemetry-val" id="mobile-partner-battery">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Quick Privacy Actions -->
+          <div style="display: flex; gap: 0.6rem;">
+            <a href="pairing.html" class="btn btn-secondary btn-sm" style="flex: 1;">
+              <i data-lucide="users" style="width: 15px; height: 15px;"></i> Kelola Room
+            </a>
+            <button id="btn-mobile-leave" class="btn btn-ghost btn-sm" style="color: #EF4444;">
+              <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Leave Couple Room Modal -->
+  <div id="leave-room-modal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" style="color: #EF4444;">
+          <i data-lucide="alert-triangle"></i>
+          <span>Tinggalkan Pasangan?</span>
+        </div>
+        <button type="button" id="btn-cancel-leave" class="modal-close-btn">&times;</button>
+      </div>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.25rem;">
+        Apakah Anda yakin ingin memutuskan hubungan Couple Room ini? Sinkronisasi lokasi realtime dan notifikasi akan dihentikan untuk kedua akun.
+      </p>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('leave-room-modal').classList.remove('active')">Batal</button>
+        <button type="button" id="btn-confirm-leave" class="btn btn-primary" style="background: #EF4444; border-color: #EF4444;">Ya, Putuskan Hubungan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/pairing.js"></script>
+  <script src="js/location.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // Responsive sidebar toggle button detection
+    function checkViewport() {
+      const toggleBtn = document.getElementById('btn-toggle-sidebar');
+      if (window.innerWidth <= 1024) {
+        if (toggleBtn) toggleBtn.style.display = 'flex';
+      } else {
+        if (toggleBtn) toggleBtn.style.display = 'none';
+      }
+    }
+    window.addEventListener('resize', checkViewport);
+    checkViewport();
+  </script>
+</body>
+</html>
+

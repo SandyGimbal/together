@@ -229,7 +229,7 @@
           </p>
           <button type="button" id="btn-skip-to-demo" class="btn btn-secondary btn-sm" style="width: 100%;">
             <i data-lucide="play" style="width: 15px; height: 15px; color: var(--cyan-accent);"></i>
-            <span>Mulai Dashboard Simulasi (Romeo & Juliet)</span>
+            <span>Mulai Dashboard Simulasi (Sandy & Dhea)</span>
           </button>
         </div>
       </div>
@@ -373,7 +373,7 @@
 
       // Skip to Simulator / Demo
       document.getElementById('btn-skip-to-demo')?.addEventListener('click', () => {
-        window.authService.loginDemoCouple('romeo');
+        window.authService.loginDemoCouple('sandy');
         localStorage.setItem('TOGETHER_DEMO_COUPLE_ID', 'demo_couple_room');
         window.location.href = 'dashboard.html';
       });

@@ -109,7 +109,7 @@ class PairingService {
         members: {
           [activeUser.uid]: {
             uid: activeUser.uid,
-            displayName: activeProfile.displayName || 'Romeo',
+            displayName: activeProfile.displayName || 'Sandy',
             avatar: activeProfile.avatar || 'assets/avatars/avatar-1.svg',
             online: true
           }

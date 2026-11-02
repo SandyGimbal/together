@@ -156,7 +156,7 @@ class AuthService {
         throw new Error(this.formatFirebaseError(err));
       }
     } else {
-      return this.loginDemoCouple('romeo');
+      return this.loginDemoCouple('sandy');
     }
   }
 
@@ -196,18 +196,20 @@ class AuthService {
     }
   }
 
-  // Quick Demo Login (Romeo & Juliet Simulation)
-  loginDemoCouple(role = 'romeo') {
-    const isRomeo = role === 'romeo';
+  // Quick Demo Login (Sandy & Dhea Simulation)
+  loginDemoCouple(role = 'sandy') {
+    const isSandy = role === 'sandy' || role === 'romeo';
     const profileData = {
-      uid: isRomeo ? 'demo_romeo_101' : 'demo_juliet_202',
-      displayName: isRomeo ? 'Romeo Alexander' : 'Juliet Rose',
-      email: isRomeo ? 'romeo@together.app' : 'juliet@together.app',
-      avatar: isRomeo ? 'assets/avatars/avatar-1.svg' : 'assets/avatars/avatar-2.svg',
+      uid: isSandy ? 'demo_sandy_101' : 'demo_dhea_202',
+      displayName: isSandy ? 'Sandy' : 'Dhea Sri Dewi',
+      nickname: isSandy ? 'Sandy' : 'Dhea',
+      email: isSandy ? 'sandy@together.app' : 'dhea@together.app',
+      avatar: isSandy ? 'assets/avatars/avatar-1.svg' : 'assets/avatars/avatar-2.svg',
       currentCoupleId: 'demo_couple_room',
-      partnerUid: isRomeo ? 'demo_juliet_202' : 'demo_romeo_101',
-      partnerName: isRomeo ? 'Juliet Rose' : 'Romeo Alexander',
-      partnerAvatar: isRomeo ? 'assets/avatars/avatar-2.svg' : 'assets/avatars/avatar-1.svg',
+      partnerUid: isSandy ? 'demo_dhea_202' : 'demo_sandy_101',
+      partnerName: isSandy ? 'Dhea Sri Dewi' : 'Sandy',
+      partnerNickname: isSandy ? 'Dhea' : 'Sandy',
+      partnerAvatar: isSandy ? 'assets/avatars/avatar-2.svg' : 'assets/avatars/avatar-1.svg',
       createdAt: Date.now()
     };
     localStorage.setItem('TOGETHER_DEMO_MODE', 'true');

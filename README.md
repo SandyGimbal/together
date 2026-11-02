@@ -44,7 +44,7 @@ Dibangun dengan arsitektur **HTML5, CSS3 murni, dan Vanilla JavaScript ES6+**, t
    - Dukungan Web Notifications API.
 
 6. **Simulator / Demo Mode Bawaan**
-   - Tanpa setup Firebase sekalipun, Anda dapat langsung menguji coba seluruh animasi peta, radar, dan pergerakan satelit pasangan melalui tombol **Mode Demo Instan (Romeo & Juliet)**!
+   - Tanpa setup Firebase sekalipun, Anda dapat langsung menguji coba seluruh animasi peta, radar, dan pergerakan satelit pasangan melalui tombol **Mode Demo Instan (Sandy & Dhea)**!
 
 ---
 
@@ -110,7 +110,7 @@ python -m http.server 8080
 Buka di browser: `http://localhost:8080`
 
 > 💡 **Coba Langsung Tanpa Firebase**:
-> Klik tombol **"Mulai Dashboard Simulasi (Romeo & Juliet)"** di halaman `login.html` atau `pairing.html` untuk melihat radar bergerak, perhitungan jarak, dan citra satelit langsung bekerja!
+> Klik tombol **"Mulai Dashboard Simulasi (Sandy & Dhea)"** di halaman `login.html` atau `pairing.html` untuk melihat radar bergerak, perhitungan jarak, dan citra satelit langsung bekerja!
 
 ---
 
@@ -164,13 +164,13 @@ Jika Anda ingin menghubungkan dua ponsel/perangkat nyata:
 ## 📱 Cara Menghubungkan Dua Perangkat Nyata
 
 1. **Buka Aplikasi di Perangkat A (Pasangan 1)**:
-   - Buka `register.html`, daftarkan akun (misal: `romeo@gmail.com`).
+   - Buka `register.html` atau klik *Masuk Cepat dengan Google*, daftarkan akun (misal: Sandy).
    - Masuk ke halaman `pairing.html`.
    - Klik **"Buat Kode Pairing Baru"**.
    - Muncul kode unik (contoh: `TOG-7X9K2M`).
 
 2. **Buka Aplikasi di Perangkat B (Pasangan 2)**:
-   - Buka `register.html`, daftarkan akun pasangan (misal: `juliet@gmail.com`).
+   - Buka `register.html` atau klik *Masuk Cepat dengan Google*, daftarkan akun pasangan (misal: Dhea).
    - Masuk ke halaman `pairing.html`.
    - Di kolom "Gabung ke Pasangan", masukkan kode `TOG-7X9K2M`.
    - Klik **"Hubungkan Sekarang"**.

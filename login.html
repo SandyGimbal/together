@@ -139,13 +139,13 @@
       </div>
 
       <div class="demo-login-group">
-        <button type="button" id="btn-demo-romeo" class="btn btn-secondary btn-sm" title="Masuk sebagai Romeo (Pasangan 1)">
+        <button type="button" id="btn-demo-sandy" class="btn btn-secondary btn-sm" title="Masuk sebagai Sandy (Pasangan 1)">
           <i data-lucide="user" style="width: 16px; height: 16px; color: var(--cyan-accent);"></i>
-          <span>Akun Romeo</span>
+          <span>Akun Sandy</span>
         </button>
-        <button type="button" id="btn-demo-juliet" class="btn btn-secondary btn-sm" title="Masuk sebagai Juliet (Pasangan 2)">
+        <button type="button" id="btn-demo-dhea" class="btn btn-secondary btn-sm" title="Masuk sebagai Dhea (Pasangan 2)">
           <i data-lucide="heart" style="width: 16px; height: 16px; color: var(--romantic-pink);"></i>
-          <span>Akun Juliet</span>
+          <span>Akun Dhea</span>
         </button>
       </div>
 
@@ -278,15 +278,15 @@
       });
 
       // Quick Demo Accounts
-      document.getElementById('btn-demo-romeo')?.addEventListener('click', () => {
-        window.authService.loginDemoCouple('romeo');
-        window.notifier.showToast("Demo Mode", "Masuk sebagai Romeo Alexander", "romantic");
+      document.getElementById('btn-demo-sandy')?.addEventListener('click', () => {
+        window.authService.loginDemoCouple('sandy');
+        window.notifier.showToast("Mode Pasangan", "Masuk sebagai Sandy", "romantic");
         setTimeout(() => window.location.href = 'dashboard.html', 700);
       });
 
-      document.getElementById('btn-demo-juliet')?.addEventListener('click', () => {
-        window.authService.loginDemoCouple('juliet');
-        window.notifier.showToast("Demo Mode", "Masuk sebagai Juliet Rose", "romantic");
+      document.getElementById('btn-demo-dhea')?.addEventListener('click', () => {
+        window.authService.loginDemoCouple('dhea');
+        window.notifier.showToast("Mode Pasangan", "Masuk sebagai Dhea Sri Dewi (Dhea)", "romantic");
         setTimeout(() => window.location.href = 'dashboard.html', 700);
       });
 

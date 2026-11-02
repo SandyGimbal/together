@@ -155,13 +155,17 @@ class DashboardController {
 
   // Setup Simulated Couple Mode for local testing
   setupDemoModeCouple() {
-    console.log("🎮 Setting up Local Couple Simulation...");
-    const isRomeo = this.userProfile.email?.includes('romeo') || true;
+    console.log("🎮 Setting up Local Couple Simulation (Sandy & Dhea)...");
+    const isSandy = this.userProfile.displayName?.toLowerCase().includes('sandy') || 
+                    this.userProfile.email?.toLowerCase().includes('sandy') || 
+                    this.userProfile.uid?.includes('sandy') || 
+                    !this.userProfile.displayName?.toLowerCase().includes('dhea');
 
     this.partnerProfile = {
-      uid: isRomeo ? 'demo_juliet' : 'demo_romeo',
-      displayName: isRomeo ? 'Juliet Rose' : 'Romeo Alexander',
-      avatar: isRomeo ? 'assets/avatars/avatar-2.svg' : 'assets/avatars/avatar-1.svg',
+      uid: isSandy ? 'demo_dhea_202' : 'demo_sandy_101',
+      displayName: isSandy ? 'Dhea Sri Dewi' : 'Sandy',
+      nickname: isSandy ? 'Dhea' : 'Sandy',
+      avatar: isSandy ? 'assets/avatars/avatar-2.svg' : 'assets/avatars/avatar-1.svg',
       online: true
     };
 

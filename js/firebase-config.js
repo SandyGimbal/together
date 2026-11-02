@@ -9,7 +9,7 @@
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyD6uUj3Pfn7K4xahZelpCi4nVLNgPTi_rM",
   authDomain: "couple-interface.firebaseapp.com",
-  databaseURL: "https://couple-interface-default-rtdb.firebaseio.com",
+  databaseURL: "https://couple-interface-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "couple-interface",
   storageBucket: "couple-interface.firebasestorage.app",
   messagingSenderId: "358371067817",

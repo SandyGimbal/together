@@ -265,6 +265,14 @@ class DashboardController {
       const timeStr = new Date(loc.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       myUpdatedEl.innerText = timeStr;
     }
+
+    // Mobile Elements Sync
+    const mobMyCoords = document.getElementById('mobile-my-coords');
+    const mobMySpeed = document.getElementById('mobile-my-speed');
+    const mobMyBattery = document.getElementById('mobile-my-battery');
+    if (mobMyCoords) mobMyCoords.innerText = `${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)}`;
+    if (mobMySpeed) mobMySpeed.innerText = `${loc.speed} km/h`;
+    if (mobMyBattery) mobMyBattery.innerText = loc.batteryLevel !== null ? `${loc.batteryLevel}% ${loc.isCharging ? '⚡' : ''}` : '--';
   }
 
   // Update Partner Telemetry Card in UI
@@ -308,6 +316,22 @@ class DashboardController {
     }
     if (pUpdatedEl) {
       pUpdatedEl.innerText = freshness.text;
+    }
+
+    // Mobile Elements Sync
+    const mobPCoords = document.getElementById('mobile-partner-coords');
+    const mobPSpeed = document.getElementById('mobile-partner-speed');
+    const mobPBattery = document.getElementById('mobile-partner-battery');
+    const mobPAccuracy = document.getElementById('mobile-partner-accuracy');
+    const mobPStatusBadge = document.getElementById('mobile-partner-status-badge');
+
+    if (mobPCoords) mobPCoords.innerText = `${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)}`;
+    if (mobPSpeed) mobPSpeed.innerText = `${loc.speed} km/h`;
+    if (mobPBattery) mobPBattery.innerText = loc.batteryLevel !== null ? `${loc.batteryLevel}% ${loc.isCharging ? '⚡' : ''}` : '--';
+    if (mobPAccuracy) mobPAccuracy.innerText = `±${loc.accuracy} m`;
+    if (mobPStatusBadge) {
+      mobPStatusBadge.className = `status-badge ${freshness.status}`;
+      mobPStatusBadge.innerHTML = `<span class="status-dot"></span> ${freshness.text}`;
     }
   }
 
@@ -497,6 +521,12 @@ class DashboardController {
     const leaveModal = document.getElementById('leave-room-modal');
     document.getElementById('btn-leave-room')?.addEventListener('click', () => {
       leaveModal?.classList.add('active');
+    });
+    document.getElementById('btn-mobile-leave')?.addEventListener('click', () => {
+      leaveModal?.classList.add('active');
+    });
+    document.getElementById('btn-mobile-notif')?.addEventListener('click', async () => {
+      await window.notifier.requestNotificationPermission();
     });
     document.getElementById('btn-cancel-leave')?.addEventListener('click', () => {
       leaveModal?.classList.remove('active');

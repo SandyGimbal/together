@@ -84,6 +84,13 @@ class DashboardController {
         this.updateMyTelemetryUI(locData);
         window.mapEngine.updateMyMarker(locData, this.userProfile);
 
+        // Auto-synchronize map directly to user's real location on first GPS fix
+        if (!this.hasAutoCentered && locData.latitude && locData.longitude) {
+          this.hasAutoCentered = true;
+          window.mapEngine.map.flyTo([locData.latitude, locData.longitude], 16, { animate: true, duration: 1.5 });
+          window.notifier.showToast("Lokasi Anda Terdeteksi 📍", "Peta otomatis disinkronkan ke posisi nyata Anda.", "success", 2500);
+        }
+
         // Broadcast to Firebase if throttler approves and sharing is active
         if (shouldBroadcast && !this.isSharingPaused) {
           window.locationService.broadcastLocation(this.coupleId, this.user.uid);
@@ -232,6 +239,14 @@ class DashboardController {
 
     // Update Map Marker
     window.mapEngine.updatePartnerMarker(pLoc, this.partnerProfile);
+
+    // Auto-fit both partners on first mutual detection
+    if (!this.hasAutoFittedBoth && this.myLocation && pLoc.latitude && pLoc.longitude) {
+      this.hasAutoFittedBoth = true;
+      setTimeout(() => {
+        window.mapEngine.fitBoth();
+      }, 1200);
+    }
 
     // Recalculate distance
     this.recalculateCoupleDistance();

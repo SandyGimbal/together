@@ -50,24 +50,54 @@ class MapEngine {
     // Setup Authentic Tile Providers
     this.setupTileLayers();
 
-    // Set initial Satellite view
-    this.setLayer('satellite');
+    // Set initial Google Maps view
+    this.setLayer('google-streets');
 
     return this.map;
   }
 
-  // Setup Real Satellite, Street, Hybrid, and Terrain Layers
+  // Setup Real Satellite, Google Maps, Hybrid, and Terrain Layers
   setupTileLayers() {
-    // 1. Esri World Imagery (Legitimate High-Resolution Satellite)
+    // 1. Google Maps Streets (Peta Jalan Resmi Google Maps)
+    const googleStreets = L.tileLayer(
+      'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      {
+        maxZoom: 20,
+        subdomains: ['0', '1', '2', '3'],
+        attribution: '&copy; Google Maps'
+      }
+    );
+
+    // 2. Google Maps Hybrid (Citra Satelit Google dengan Label Jalan & Tempat)
+    const googleHybrid = L.tileLayer(
+      'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      {
+        maxZoom: 20,
+        subdomains: ['0', '1', '2', '3'],
+        attribution: '&copy; Google Maps'
+      }
+    );
+
+    // 3. Google Maps Terrain (Medan & Kontur)
+    const googleTerrain = L.tileLayer(
+      'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+      {
+        maxZoom: 20,
+        subdomains: ['0', '1', '2', '3'],
+        attribution: '&copy; Google Maps'
+      }
+    );
+
+    // 4. Esri World Imagery (Legitimate Ultra HD Satellite)
     const esriSatellite = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
         maxZoom: 19,
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP'
       }
     );
 
-    // 2. OpenStreetMap (Street View)
+    // 5. OpenStreetMap (Street View)
     const osmStreet = L.tileLayer(
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
@@ -76,16 +106,7 @@ class MapEngine {
       }
     );
 
-    // 3. Esri World Topo Map (Terrain View)
-    const esriTerrain = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-      {
-        maxZoom: 19,
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
-      }
-    );
-
-    // Esri Reference Labels (Overlay for Hybrid Satellite)
+    // Esri Reference Labels (Overlay for Esri Hybrid)
     this.hybridLabelsLayer = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
       {
@@ -95,9 +116,11 @@ class MapEngine {
     );
 
     this.baseLayers = {
-      satellite: esriSatellite,
-      street: osmStreet,
-      terrain: esriTerrain
+      'google-streets': googleStreets,
+      'google-hybrid': googleHybrid,
+      'satellite': esriSatellite,
+      'terrain': googleTerrain,
+      'street': osmStreet
     };
   }
 

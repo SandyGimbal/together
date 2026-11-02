@@ -222,14 +222,24 @@
       const submitBtn = document.getElementById('btn-submit-login');
 
       // Auto redirect if already logged in
-      window.authService.initAuthObserver((user, profile) => {
+      window.authService.initAuthObserver(async (user, profile) => {
         if (user) {
-          const coupleId = profile?.currentCoupleId || localStorage.getItem('TOGETHER_DEMO_COUPLE_ID');
-          if (coupleId) {
+          const isDemo = localStorage.getItem('TOGETHER_DEMO_MODE') === 'true';
+          if (isDemo) {
             window.location.href = 'dashboard.html';
-          } else {
-            window.location.href = 'pairing.html';
+            return;
           }
+
+          if (profile?.currentCoupleId && window.firebaseManager?.database) {
+            try {
+              const snap = await window.firebaseManager.database.ref(`couples/${profile.currentCoupleId}/status`).once('value');
+              if (snap.val() === 'active') {
+                window.location.href = 'dashboard.html';
+                return;
+              }
+            } catch (e) {}
+          }
+          window.location.href = 'pairing.html';
         }
       });
 
@@ -243,15 +253,11 @@
         submitBtn.innerHTML = `<span>Memproses...</span>`;
 
         try {
-          const res = await window.authService.login(email, password);
+          await window.authService.login(email, password);
           window.notifier.showToast("Berhasil Masuk", "Selamat datang kembali!", "success");
           setTimeout(() => {
-            if (res.profile?.currentCoupleId) {
-              window.location.href = 'dashboard.html';
-            } else {
-              window.location.href = 'pairing.html';
-            }
-          }, 800);
+            window.location.href = 'pairing.html';
+          }, 600);
         } catch (err) {
           window.notifier.showToast("Gagal Masuk", err.message, "error");
           submitBtn.disabled = false;
@@ -266,12 +272,8 @@
           const res = await window.authService.signInWithGoogle();
           window.notifier.showToast("Berhasil Masuk! 🎉", `Selamat datang, ${res.profile.displayName}!`, "success");
           setTimeout(() => {
-            if (res.profile?.currentCoupleId) {
-              window.location.href = 'dashboard.html';
-            } else {
-              window.location.href = 'pairing.html';
-            }
-          }, 800);
+            window.location.href = 'pairing.html';
+          }, 600);
         } catch (err) {
           window.notifier.showToast("Gagal Masuk Google", err.message, "error");
         }

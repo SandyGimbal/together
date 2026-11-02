@@ -176,6 +176,12 @@
                 <span>Bagikan</span>
               </button>
             </div>
+
+            <div style="text-align: center; margin-top: 1rem;">
+              <button type="button" id="btn-cancel-code" class="btn btn-ghost btn-sm" style="color: #F87171; font-size: 0.8rem;">
+                <i data-lucide="x" style="width: 14px; height: 14px;"></i> Batalkan Kode & Buat Baru
+              </button>
+            </div>
           </div>
         </div>
 
@@ -251,7 +257,7 @@
       let activeCreatedCoupleId = null;
 
       // Auth Observer
-      window.authService.initAuthObserver((user, profile) => {
+      window.authService.initAuthObserver(async (user, profile) => {
         if (!user) {
           window.location.href = 'login.html';
           return;
@@ -264,15 +270,73 @@
           badge.innerHTML = `<span class="status-dot"></span> Masuk: <strong>${userProfile.displayName || user.email}</strong>`;
         }
 
-        // If user already has a couple room, redirect straight to dashboard
-        if (userProfile.currentCoupleId) {
-          window.location.href = 'dashboard.html';
+        // Clean any demo residues
+        localStorage.removeItem('TOGETHER_DEMO_MODE');
+        localStorage.removeItem('TOGETHER_DEMO_COUPLE_ID');
+        localStorage.removeItem('TOGETHER_DEMO_COUPLE');
+
+        // Check couple room status in Firebase
+        if (userProfile.currentCoupleId && window.firebaseManager?.database) {
+          try {
+            const db = window.firebaseManager.database;
+            const snap = await db.ref(`couples/${userProfile.currentCoupleId}`).once('value');
+            const coupleData = snap.val();
+
+            if (coupleData && coupleData.status === 'active') {
+              // Both partners are connected! Go to dashboard.
+              window.location.href = 'dashboard.html';
+              return;
+            } else if (coupleData && coupleData.status === 'waiting') {
+              // Room is waiting for partner! Stay on pairing page, show code and radar.
+              activeCreatedCode = coupleData.code;
+              activeCreatedCoupleId = coupleData.coupleId;
+
+              document.getElementById('create-room-initial').style.display = 'none';
+              document.getElementById('create-room-active').style.display = 'block';
+              document.getElementById('generated-code-text').innerText = coupleData.code;
+
+              // Start listening for partner join
+              window.pairingService.listenForPartnerJoin(coupleData.coupleId, user.uid, (partner) => {
+                window.notifier.showToast("Pasangan Bergabung! 💕", `${partner.displayName || 'Pasangan Anda'} telah terhubung dengan Anda!`, "romantic", 5000);
+                setTimeout(() => {
+                  window.location.href = 'dashboard.html';
+                }, 1200);
+              });
+              return;
+            } else {
+              // Dissolved or invalid room: clean up
+              await db.ref(`users/${user.uid}/currentCoupleId`).set(null);
+              userProfile.currentCoupleId = null;
+            }
+          } catch (e) {
+            console.warn("Could not check couple status:", e);
+          }
         }
       });
 
       // Logout handler
       document.getElementById('btn-logout-nav')?.addEventListener('click', async () => {
         await window.authService.logout();
+      });
+
+      // Cancel Code Button
+      document.getElementById('btn-cancel-code')?.addEventListener('click', async () => {
+        if (activeCreatedCoupleId && currentUser) {
+          try {
+            await window.pairingService.leaveCoupleRoom(activeCreatedCoupleId, currentUser);
+          } catch (e) {}
+        }
+        activeCreatedCode = null;
+        activeCreatedCoupleId = null;
+        document.getElementById('create-room-active').style.display = 'none';
+        document.getElementById('create-room-initial').style.display = 'block';
+        const btnCreate = document.getElementById('btn-create-code');
+        if (btnCreate) {
+          btnCreate.disabled = false;
+          btnCreate.innerHTML = `<i data-lucide="key" style="width: 20px; height: 20px;"></i><span>Buat Kode Pairing Baru</span>`;
+          if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        window.notifier.showToast("Kode Dibatalkan", "Silakan buat kode baru kapan saja.", "info");
       });
 
       // Create Couple Room Button
@@ -301,7 +365,7 @@
 
           // Start listening for partner join
           window.pairingService.listenForPartnerJoin(coupleId, user.uid, (partner) => {
-            window.notifier.showToast("Pasangan Bergabung! 💕", `${partner.displayName} telah terhubung dengan Anda!`, "romantic", 5000);
+            window.notifier.showToast("Pasangan Bergabung! 💕", `${partner.displayName || 'Pasangan Anda'} telah terhubung dengan Anda!`, "romantic", 5000);
             setTimeout(() => {
               window.location.href = 'dashboard.html';
             }, 1200);
@@ -309,7 +373,8 @@
         } catch (err) {
           window.notifier.showToast("Gagal Membuat Room", err.message, "error");
           btnCreate.disabled = false;
-          btnCreate.innerText = "Buat Kode Pairing Baru";
+          btnCreate.innerHTML = `<i data-lucide="key" style="width: 20px; height: 20px;"></i><span>Buat Kode Pairing Baru</span>`;
+          if (typeof lucide !== 'undefined') lucide.createIcons();
         }
       });
 

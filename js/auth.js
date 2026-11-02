@@ -67,6 +67,12 @@ class AuthService {
       throw new Error("Kata sandi minimal 6 karakter.");
     }
 
+    // Clear any previous demo residues
+    localStorage.removeItem('TOGETHER_DEMO_MODE');
+    localStorage.removeItem('TOGETHER_DEMO_COUPLE_ID');
+    localStorage.removeItem('TOGETHER_DEMO_COUPLE');
+    localStorage.removeItem('TOGETHER_CURRENT_COUPLE_ID');
+
     const selectedAvatar = avatar || 'assets/avatars/avatar-1.svg';
 
     // Real Firebase mode
@@ -125,6 +131,12 @@ class AuthService {
 
   // Sign In with Google
   async signInWithGoogle() {
+    // Clear any previous demo residues
+    localStorage.removeItem('TOGETHER_DEMO_MODE');
+    localStorage.removeItem('TOGETHER_DEMO_COUPLE_ID');
+    localStorage.removeItem('TOGETHER_DEMO_COUPLE');
+    localStorage.removeItem('TOGETHER_CURRENT_COUPLE_ID');
+
     if (window.firebaseManager && window.firebaseManager.isConfigured && window.firebaseManager.auth) {
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -165,6 +177,12 @@ class AuthService {
     if (!email || !password) {
       throw new Error("Email dan kata sandi wajib diisi.");
     }
+
+    // Clear any previous demo residues
+    localStorage.removeItem('TOGETHER_DEMO_MODE');
+    localStorage.removeItem('TOGETHER_DEMO_COUPLE_ID');
+    localStorage.removeItem('TOGETHER_DEMO_COUPLE');
+    localStorage.removeItem('TOGETHER_CURRENT_COUPLE_ID');
 
     if (window.firebaseManager && window.firebaseManager.isConfigured && window.firebaseManager.auth) {
       try {
@@ -246,6 +264,10 @@ class AuthService {
       }
     }
     localStorage.removeItem('TOGETHER_CURRENT_USER');
+    localStorage.removeItem('TOGETHER_DEMO_MODE');
+    localStorage.removeItem('TOGETHER_DEMO_COUPLE_ID');
+    localStorage.removeItem('TOGETHER_DEMO_COUPLE');
+    localStorage.removeItem('TOGETHER_CURRENT_COUPLE_ID');
     this.currentUser = null;
     this.userProfile = null;
     window.location.href = 'login.html';

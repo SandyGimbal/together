@@ -37,14 +37,35 @@ class DashboardController {
       this.userProfile = profile || user;
 
       // Check couple status
-      const coupleId = this.userProfile?.currentCoupleId || localStorage.getItem('TOGETHER_CURRENT_COUPLE_ID') || localStorage.getItem('TOGETHER_DEMO_COUPLE_ID');
-      if (!coupleId && !window.firebaseManager.isDemoMode) {
-        console.warn("No active couple room. Redirecting to pairing...");
-        window.location.href = 'pairing.html';
-        return;
-      }
+      const isDemoMode = localStorage.getItem('TOGETHER_DEMO_MODE') === 'true';
 
-      this.coupleId = coupleId || 'demo_couple_room';
+      if (!isDemoMode && window.firebaseManager?.isConfigured) {
+        const coupleId = this.userProfile?.currentCoupleId;
+        if (!coupleId) {
+          console.warn("No active couple room in profile. Redirecting to pairing...");
+          window.location.href = 'pairing.html';
+          return;
+        }
+
+        // Verify couple status in Firebase
+        try {
+          const snap = await window.firebaseManager.database.ref(`couples/${coupleId}`).once('value');
+          const data = snap.val();
+          if (!data || data.status !== 'active') {
+            console.warn("Couple is not active yet (waiting for partner or dissolved). Redirecting to pairing...");
+            window.location.href = 'pairing.html';
+            return;
+          }
+          this.coupleId = coupleId;
+        } catch (e) {
+          console.warn("Failed checking couple in DB:", e);
+          window.location.href = 'pairing.html';
+          return;
+        }
+      } else {
+        // Explicit Demo Mode
+        this.coupleId = 'demo_couple_room';
+      }
 
       // Initialize UI, Map and Listeners
       await this.setupEnvironment();

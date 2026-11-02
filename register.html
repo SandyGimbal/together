@@ -188,12 +188,8 @@
           const res = await window.authService.signInWithGoogle();
           window.notifier.showToast("Berhasil Masuk Google! 🎉", `Selamat datang, ${res.profile.displayName}!`, "success");
           setTimeout(() => {
-            if (res.profile?.currentCoupleId) {
-              window.location.href = 'dashboard.html';
-            } else {
-              window.location.href = 'pairing.html';
-            }
-          }, 800);
+            window.location.href = 'pairing.html';
+          }, 600);
         } catch (err) {
           window.notifier.showToast("Gagal Masuk Google", err.message, "error");
         }

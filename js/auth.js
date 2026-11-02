@@ -43,16 +43,18 @@ class AuthService {
     }
   }
 
-  // Load user profile from Firebase Realtime Database
+  // Load user profile from Firebase Realtime Database with safety timeout
   async loadUserProfile(uid) {
     if (!window.firebaseManager.database) return null;
     try {
-      const snapshot = await window.firebaseManager.database.ref(`users/${uid}`).once('value');
+      const dbPromise = window.firebaseManager.database.ref(`users/${uid}`).once('value');
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('RTDB Timeout')), 2500));
+      const snapshot = await Promise.race([dbPromise, timeoutPromise]);
       this.userProfile = snapshot.val();
       return this.userProfile;
     } catch (err) {
-      console.error("Failed to load user profile:", err);
-      return null;
+      console.warn("User profile DB load skipped (database might not be created yet):", err.message);
+      return this.userProfile;
     }
   }
 
@@ -89,7 +91,13 @@ class AuthService {
           createdAt: firebase.database.ServerValue.TIMESTAMP
         };
 
-        await window.firebaseManager.database.ref(`users/${user.uid}`).set(profileData);
+        try {
+          const savePromise = window.firebaseManager.database.ref(`users/${user.uid}`).set(profileData);
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('RTDB Timeout')), 2500));
+          await Promise.race([savePromise, timeoutPromise]);
+        } catch (dbErr) {
+          console.warn("Realtime DB save skipped or timed out:", dbErr.message);
+        }
         this.currentUser = user;
         this.userProfile = profileData;
         return profileData;
@@ -134,7 +142,11 @@ class AuthService {
             createdAt: firebase.database.ServerValue.TIMESTAMP
           };
           if (window.firebaseManager.database) {
-            await window.firebaseManager.database.ref(`users/${user.uid}`).set(profile);
+            try {
+              const savePromise = window.firebaseManager.database.ref(`users/${user.uid}`).set(profile);
+              const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('RTDB Timeout')), 2500));
+              await Promise.race([savePromise, timeoutPromise]);
+            } catch (e) {}
           }
         }
         this.currentUser = user;

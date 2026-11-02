@@ -21,10 +21,17 @@ class PairingService {
 
   // Create a new Couple Room
   async createCoupleRoom(user, profile) {
-    if (!user) throw new Error("Pengguna belum terautentikasi.");
+    const activeUser = user || (window.firebaseManager?.auth?.currentUser) || window.authService?.currentUser;
+    if (!activeUser) throw new Error("Sesi login Anda belum aktif. Silakan masuk terlebih dahulu.");
 
     const code = this.generatePairingCode();
     const coupleId = 'couple_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+
+    const activeProfile = profile || window.authService?.userProfile || {
+      displayName: activeUser.displayName || activeUser.email?.split('@')[0] || 'Pasangan A',
+      avatar: activeUser.photoURL || 'assets/avatars/avatar-1.svg',
+      email: activeUser.email || ''
+    };
 
     // If Real Firebase mode
     if (window.firebaseManager && window.firebaseManager.isConfigured && window.firebaseManager.database) {
@@ -36,17 +43,17 @@ class PairingService {
         status: 'waiting',
         createdAt: firebase.database.ServerValue.TIMESTAMP,
         members: {
-          [user.uid]: {
-            uid: user.uid,
-            displayName: profile?.displayName || user.displayName || 'Pasangan A',
-            avatar: profile?.avatar || 'assets/avatars/avatar-1.svg',
-            email: user.email,
+          [activeUser.uid]: {
+            uid: activeUser.uid,
+            displayName: activeProfile.displayName || 'Pasangan A',
+            avatar: activeProfile.avatar || 'assets/avatars/avatar-1.svg',
+            email: activeUser.email || '',
             joinedAt: firebase.database.ServerValue.TIMESTAMP,
             online: true
           }
         },
         locations: {
-          [user.uid]: {
+          [activeUser.uid]: {
             latitude: 0,
             longitude: 0,
             accuracy: 0,
@@ -66,9 +73,9 @@ class PairingService {
       const pairingCodeData = {
         code: code,
         coupleId: coupleId,
-        createdBy: user.uid,
-        creatorName: profile?.displayName || user.displayName,
-        creatorAvatar: profile?.avatar || 'assets/avatars/avatar-1.svg',
+        createdBy: activeUser.uid,
+        creatorName: activeProfile.displayName || 'Pasangan A',
+        creatorAvatar: activeProfile.avatar || 'assets/avatars/avatar-1.svg',
         status: 'pending',
         createdAt: firebase.database.ServerValue.TIMESTAMP
       };
@@ -77,9 +84,17 @@ class PairingService {
       const updates = {};
       updates[`couples/${coupleId}`] = coupleData;
       updates[`pairingCodes/${code}`] = pairingCodeData;
-      updates[`users/${user.uid}/currentCoupleId`] = coupleId;
+      updates[`users/${activeUser.uid}/currentCoupleId`] = coupleId;
 
-      await db.ref().update(updates);
+      try {
+        const updatePromise = db.ref().update(updates);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Koneksi timeout. Pastikan tab Rules di Realtime Database sudah diatur ke "auth != null"')), 5000));
+        await Promise.race([updatePromise, timeoutPromise]);
+      } catch (err) {
+        console.error("Room creation error:", err);
+        throw new Error(err.message || "Gagal menyimpan room ke database.");
+      }
+
       return { coupleId, code };
     } else {
       // Demo / Simulator Mode
@@ -89,10 +104,10 @@ class PairingService {
         status: 'waiting',
         createdAt: Date.now(),
         members: {
-          [user.uid]: {
-            uid: user.uid,
-            displayName: profile?.displayName || 'Romeo',
-            avatar: profile?.avatar || 'assets/avatars/avatar-1.svg',
+          [activeUser.uid]: {
+            uid: activeUser.uid,
+            displayName: activeProfile.displayName || 'Romeo',
+            avatar: activeProfile.avatar || 'assets/avatars/avatar-1.svg',
             online: true
           }
         }
@@ -105,12 +120,19 @@ class PairingService {
 
   // Join an existing Couple Room using Pairing Code
   async joinCoupleRoom(codeToJoin, user, profile) {
-    if (!user) throw new Error("Pengguna belum terautentikasi.");
+    const activeUser = user || (window.firebaseManager?.auth?.currentUser) || window.authService?.currentUser;
+    if (!activeUser) throw new Error("Sesi login Anda belum aktif. Silakan masuk terlebih dahulu.");
     const formattedCode = codeToJoin.trim().toUpperCase();
 
     if (!formattedCode || formattedCode.length < 6) {
       throw new Error("Format kode pairing tidak valid.");
     }
+
+    const activeProfile = profile || window.authService?.userProfile || {
+      displayName: activeUser.displayName || activeUser.email?.split('@')[0] || 'Pasangan B',
+      avatar: activeUser.photoURL || 'assets/avatars/avatar-2.svg',
+      email: activeUser.email || ''
+    };
 
     if (window.firebaseManager && window.firebaseManager.isConfigured && window.firebaseManager.database) {
       const db = window.firebaseManager.database;

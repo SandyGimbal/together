@@ -278,11 +278,18 @@
       // Create Couple Room Button
       const btnCreate = document.getElementById('btn-create-code');
       btnCreate?.addEventListener('click', async () => {
+        const user = currentUser || window.firebaseManager?.auth?.currentUser || window.authService?.currentUser;
+        if (!user) {
+          window.notifier.showToast("Belum Masuk", "Sesi login belum aktif. Silakan masuk terlebih dahulu.", "warning");
+          setTimeout(() => window.location.href = 'login.html', 1200);
+          return;
+        }
+
         btnCreate.disabled = true;
         btnCreate.innerText = "Membuat Room...";
 
         try {
-          const { coupleId, code } = await window.pairingService.createCoupleRoom(currentUser, userProfile);
+          const { coupleId, code } = await window.pairingService.createCoupleRoom(user, userProfile);
           activeCreatedCode = code;
           activeCreatedCoupleId = coupleId;
 
@@ -293,7 +300,7 @@
           window.notifier.showToast("Room Dibuat! 🎉", `Kode Anda: ${code}. Bagikan ke pasangan.`, "success");
 
           // Start listening for partner join
-          window.pairingService.listenForPartnerJoin(coupleId, currentUser.uid, (partner) => {
+          window.pairingService.listenForPartnerJoin(coupleId, user.uid, (partner) => {
             window.notifier.showToast("Pasangan Bergabung! 💕", `${partner.displayName} telah terhubung dengan Anda!`, "romantic", 5000);
             setTimeout(() => {
               window.location.href = 'dashboard.html';
@@ -339,13 +346,19 @@
 
       joinForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const user = currentUser || window.firebaseManager?.auth?.currentUser || window.authService?.currentUser;
+        if (!user) {
+          window.notifier.showToast("Belum Masuk", "Sesi login belum aktif. Silakan masuk terlebih dahulu.", "warning");
+          setTimeout(() => window.location.href = 'login.html', 1200);
+          return;
+        }
         const codeInput = document.getElementById('input-pairing-code').value.trim();
 
         submitJoinBtn.disabled = true;
         submitJoinBtn.innerText = "Menghubungkan...";
 
         try {
-          const { coupleId } = await window.pairingService.joinCoupleRoom(codeInput, currentUser, userProfile);
+          const { coupleId } = await window.pairingService.joinCoupleRoom(codeInput, user, userProfile);
           window.notifier.showToast("Terhubung! 💕", "Anda dan pasangan kini resmi terhubung!", "romantic", 4000);
           setTimeout(() => {
             window.location.href = 'dashboard.html';

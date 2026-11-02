@@ -37,7 +37,7 @@ class DashboardController {
       this.userProfile = profile || user;
 
       // Check couple status
-      const coupleId = this.userProfile.currentCoupleId || localStorage.getItem('TOGETHER_DEMO_COUPLE_ID');
+      const coupleId = this.userProfile?.currentCoupleId || localStorage.getItem('TOGETHER_CURRENT_COUPLE_ID') || localStorage.getItem('TOGETHER_DEMO_COUPLE_ID');
       if (!coupleId && !window.firebaseManager.isDemoMode) {
         console.warn("No active couple room. Redirecting to pairing...");
         window.location.href = 'pairing.html';

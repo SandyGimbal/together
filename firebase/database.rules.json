@@ -1,20 +1,6 @@
 {
   "rules": {
-    "users": {
-      "$uid": {
-        ".read": "auth != null",
-        ".write": "auth != null && auth.uid === $uid"
-      }
-    },
-    "pairingCodes": {
-      ".read": "auth != null",
-      ".write": "auth != null"
-    },
-    "couples": {
-      "$coupleId": {
-        ".read": "auth != null",
-        ".write": "auth != null"
-      }
-    }
+    ".read": "auth != null",
+    ".write": "auth != null"
   }
 }

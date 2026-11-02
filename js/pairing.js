@@ -88,8 +88,11 @@ class PairingService {
 
       try {
         const updatePromise = db.ref().update(updates);
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Koneksi timeout. Pastikan tab Rules di Realtime Database sudah diatur ke "auth != null"')), 5000));
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Koneksi timeout. Pastikan tab Rules di Realtime Database sudah diatur ke "auth != null" lalu klik Publikasikan.')), 12000));
         await Promise.race([updatePromise, timeoutPromise]);
+        
+        // Cache to localStorage for resilience
+        localStorage.setItem('TOGETHER_CURRENT_COUPLE_ID', coupleId);
       } catch (err) {
         console.error("Room creation error:", err);
         throw new Error(err.message || "Gagal menyimpan room ke database.");
@@ -137,8 +140,15 @@ class PairingService {
     if (window.firebaseManager && window.firebaseManager.isConfigured && window.firebaseManager.database) {
       const db = window.firebaseManager.database;
 
-      // Check pairing code existence
-      const codeSnapshot = await db.ref(`pairingCodes/${formattedCode}`).once('value');
+      // Check pairing code existence with safety timeout
+      let codeSnapshot;
+      try {
+        const fetchPromise = db.ref(`pairingCodes/${formattedCode}`).once('value');
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Koneksi timeout saat mengecek kode pairing.')), 10000));
+        codeSnapshot = await Promise.race([fetchPromise, timeoutPromise]);
+      } catch (e) {
+        throw new Error(e.message || "Gagal menghubungi database.");
+      }
       const codeData = codeSnapshot.val();
 
       if (!codeData) {
@@ -182,7 +192,16 @@ class PairingService {
       updates[`pairingCodes/${formattedCode}/partnerUid`] = user.uid;
       updates[`users/${user.uid}/currentCoupleId`] = coupleId;
 
-      await db.ref().update(updates);
+      try {
+        const updatePromise = db.ref().update(updates);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Koneksi timeout saat bergabung ke room.')), 10000));
+        await Promise.race([updatePromise, timeoutPromise]);
+        
+        // Cache to localStorage for resilience
+        localStorage.setItem('TOGETHER_CURRENT_COUPLE_ID', coupleId);
+      } catch (e) {
+        throw new Error(e.message || "Gagal menghubungkan ke room.");
+      }
       return { coupleId, code: formattedCode };
     } else {
       // Demo simulated join
@@ -241,6 +260,7 @@ class PairingService {
       window.authService.userProfile.currentCoupleId = null;
     }
     localStorage.removeItem('TOGETHER_DEMO_COUPLE');
+    localStorage.removeItem('TOGETHER_CURRENT_COUPLE_ID');
     window.location.href = 'pairing.html';
   }
 }

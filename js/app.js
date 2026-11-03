@@ -17,6 +17,8 @@ class AppMaster {
     this.initLucideIcons();
     this.initRippleEffect();
     this.initFirebaseConfigDialog();
+    this.initPWA();
+    this.initLoveCounter();
   }
 
   // Twinkling Space Starfield Canvas
@@ -145,6 +147,97 @@ class AppMaster {
         window.firebaseManager.resetConfig();
       }
     });
+  }
+
+  // PWA Service Worker & Install Prompt Registration
+  initPWA() {
+    // 1. Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('📱 PWA Service Worker Registered:', reg.scope))
+          .catch((err) => console.warn('PWA SW registration skipped:', err.message));
+      });
+    }
+
+    // 2. Capture beforeinstallprompt for Android Chrome / Brave
+    window.deferredPwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.deferredPwaPrompt = e;
+      console.log('📲 PWA: Install Prompt Captured');
+
+      // Unhide all install buttons
+      const installBtns = document.querySelectorAll('.btn-install-pwa');
+      installBtns.forEach(btn => {
+        btn.style.display = 'inline-flex';
+      });
+    });
+
+    // Handle install button clicks
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.btn-install-pwa');
+      if (!btn) return;
+
+      if (window.deferredPwaPrompt) {
+        window.deferredPwaPrompt.prompt();
+        const { outcome } = await window.deferredPwaPrompt.userChoice;
+        console.log(`User response to PWA install: ${outcome}`);
+        window.deferredPwaPrompt = null;
+        btn.style.display = 'none';
+      } else {
+        // Fallback instructions for Brave / Chrome
+        window.notifier?.showToast(
+          "Instal Aplikasi TOGETHER",
+          "Di Brave/Chrome: ketuk ikon titik tiga (⋮) di kanan atas browser, lalu pilih 'Tambahkan ke Layar Utama' (Add to Home screen) atau 'Instal Aplikasi'.",
+          "info",
+          7000
+        );
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('🎉 TOGETHER PWA Installed successfully!');
+      window.notifier?.showToast("Aplikasi Terpasang! 🎉", "TOGETHER kini tersedia di layar utama perangkat Anda.", "success");
+      const installBtns = document.querySelectorAll('.btn-install-pwa');
+      installBtns.forEach(btn => btn.style.display = 'none');
+    });
+  }
+
+  // Romantic Love Counter (Hari Jadian: 31 Oktober 2026)
+  initLoveCounter() {
+    // Relationship start date: 31 Oktober 2026 00:00:00 WIB
+    const startDate = new Date('2026-10-31T00:00:00+07:00').getTime();
+
+    const updateClock = () => {
+      const now = Date.now();
+      const diff = Math.max(0, now - startDate);
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      const daysElapsed = days + 1; // e.g. Hari ke-3
+
+      // Update Pill
+      const pillDays = document.querySelectorAll('.couple-love-days');
+      pillDays.forEach(el => el.innerText = `Hari ke-${daysElapsed}`);
+
+      // Update Modal Digits
+      const digitDays = document.getElementById('love-digit-days');
+      const digitHours = document.getElementById('love-digit-hours');
+      const digitMinutes = document.getElementById('love-digit-minutes');
+      const digitSeconds = document.getElementById('love-digit-seconds');
+
+      if (digitDays) digitDays.innerText = String(days).padStart(2, '0');
+      if (digitHours) digitHours.innerText = String(hours).padStart(2, '0');
+      if (digitMinutes) digitMinutes.innerText = String(minutes).padStart(2, '0');
+      if (digitSeconds) digitSeconds.innerText = String(seconds).padStart(2, '0');
+    };
+
+    updateClock();
+    setInterval(updateClock, 1000);
   }
 }
 

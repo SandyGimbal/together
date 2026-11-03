@@ -6,6 +6,13 @@
   <title>Dashboard — TOGETHER Satellite Geospatial Platform</title>
   
   <link rel="icon" type="image/svg+xml" href="assets/icons/logo.svg">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#080B14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TOGETHER">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -280,6 +287,25 @@
           </div>
         </div>
 
+        <!-- Card: Couple Identity & Anniversary (31 Oktober 2026) -->
+        <div class="telemetry-card" style="border: 1px solid rgba(255, 117, 184, 0.4); background: linear-gradient(135deg, rgba(255, 117, 184, 0.12) 0%, rgba(56, 135, 255, 0.1) 100%); cursor: pointer;" onclick="document.getElementById('couple-profile-modal').classList.add('active')">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
+            <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--romantic-pink); display: flex; align-items: center; gap: 0.35rem;">
+              <i data-lucide="heart" style="width: 13px; height: 13px; fill: var(--romantic-pink);"></i> Kisah Cinta Kita
+            </div>
+            <span class="couple-love-days" style="font-size: 0.75rem;">Hari ke-3</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-weight: 700; font-size: 1rem; color: #fff;">Sandy & Dhea</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">Jadian: <strong>31 Okt 2026</strong></div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" style="color: var(--romantic-pink); padding: 0.3rem 0.6rem;">
+              <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+            </button>
+          </div>
+        </div>
+
         <!-- Card D: Privacy & Controls -->
         <div class="telemetry-card">
           <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem;">
@@ -326,20 +352,38 @@
 
       <!-- Floating Top Dynamic Bar -->
       <div class="floating-top-bar">
-        <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
           <button id="btn-toggle-sidebar" class="map-control-btn" title="Buka Menu Telemetri" style="display: none;">
             <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
           </button>
-          <div class="floating-partner-pill">
+          
+          <!-- Partner Pill -->
+          <div class="floating-partner-pill" id="top-bar-partner-container" title="Klik untuk fokus ke pasangan">
             <img id="top-bar-partner-avatar" src="assets/avatars/avatar-2.svg" alt="Partner" style="width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--romantic-pink);">
             <div>
               <div id="top-bar-partner-name" style="font-weight: 700; font-size: 0.9rem; line-height: 1.2;">Pasangan</div>
               <div id="top-bar-distance-text" style="font-size: 0.72rem; color: var(--cyan-accent); font-weight: 600;">-- dari Anda</div>
             </div>
           </div>
+
+          <!-- Romantic Couple Pill (Sandy 💕 Dhea — 31 Okt 2026) -->
+          <div id="btn-open-couple-profile" class="couple-love-pill" title="Buka Profil Sandy & Dhea">
+            <i data-lucide="heart" style="width: 14px; height: 14px; fill: var(--romantic-pink); color: var(--romantic-pink);"></i>
+            <div class="couple-love-title">Sandy 💕 Dhea</div>
+            <span class="couple-love-days">Hari ke-3</span>
+          </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <!-- PWA Install Button (Appears if installable on Chrome/Brave) -->
+          <button id="btn-pwa-install" class="btn-install-pwa map-control-btn" title="Pasang Aplikasi (PWA)" style="display: none;">
+            <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+          </button>
+          
+          <!-- Force Sync GPS Button -->
+          <button id="btn-force-sync" class="map-control-btn" title="Segarkan Sinkronisasi GPS">
+            <i data-lucide="refresh-cw" style="width: 17px; height: 17px;"></i>
+          </button>
           <button id="btn-scanner" class="map-control-btn" title="Toggle Scanner Radar Satelit">
             <i data-lucide="radar" style="width: 18px; height: 18px;"></i>
           </button>
@@ -465,15 +509,25 @@
           </div>
 
           <!-- Mobile Quick Privacy Actions -->
-          <div style="display: flex; gap: 0.6rem;">
-            <a href="pairing.html" class="btn btn-secondary btn-sm" style="flex: 1;">
-              <i data-lucide="users" style="width: 15px; height: 15px;"></i> Kelola Room
+          <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+            <button id="btn-mobile-profile" class="btn btn-secondary btn-sm" style="flex: 1; border-color: rgba(255, 117, 184, 0.4); color: var(--romantic-pink);" onclick="document.getElementById('couple-profile-modal').classList.add('active')">
+              <i data-lucide="heart" style="width: 15px; height: 15px; fill: var(--romantic-pink);"></i>
+              <span>Profil Cinta (Sandy & Dhea)</span>
+            </button>
+            <button class="btn btn-secondary btn-sm btn-install-pwa" style="display: none;">
+              <i data-lucide="download" style="width: 15px; height: 15px; color: var(--cyan-accent);"></i>
+              <span>Pasang App</span>
+            </button>
+            <a href="pairing.html" class="btn btn-secondary btn-sm">
+              <i data-lucide="users" style="width: 15px; height: 15px;"></i> Room
             </a>
             <button id="btn-mobile-notif" class="btn btn-secondary btn-sm" title="Notifikasi">
               <i data-lucide="bell" style="width: 15px; height: 15px; color: var(--cyan-accent);"></i>
             </button>
             <button id="btn-mobile-leave" class="btn btn-ghost btn-sm" style="color: #EF4444;" title="Keluar Room">
               <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
+            </button>
+          </div>
             </button>
           </div>
         </div>
@@ -498,6 +552,92 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="document.getElementById('leave-room-modal').classList.remove('active')">Batal</button>
         <button type="button" id="btn-confirm-leave" class="btn btn-primary" style="background: #EF4444; border-color: #EF4444;">Ya, Putuskan Hubungan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Couple Profile & Anniversary Modal -->
+  <div id="couple-profile-modal" class="modal-overlay">
+    <div class="modal-dialog couple-profile-dialog">
+      <div class="modal-header" style="margin-bottom: 0.5rem;">
+        <div class="modal-title" style="color: var(--romantic-pink);">
+          <i data-lucide="heart" style="fill: var(--romantic-pink); width: 20px; height: 20px;"></i>
+          <span>Profil Pasangan Cinta</span>
+        </div>
+        <button type="button" id="btn-close-couple-profile" class="modal-close-btn">&times;</button>
+      </div>
+
+      <!-- Sandy & Dhea Side-by-Side Duo -->
+      <div class="couple-profile-duo">
+        <!-- Sandy -->
+        <div class="profile-partner-box box-sandy">
+          <img id="profile-sandy-avatar" src="assets/avatars/avatar-1.svg" alt="Sandy" class="duo-avatar">
+          <div style="font-weight: 700; font-size: 1.05rem; color: #fff;">Sandy</div>
+          <div style="font-size: 0.72rem; color: var(--cyan-accent); font-weight: 600;">Pasangan 1</div>
+          <div id="profile-sandy-city" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">Pekanbaru</div>
+        </div>
+
+        <!-- Center Love Animation -->
+        <div class="duo-heart-center">
+          <div class="duo-heart-pulse">
+            <i data-lucide="heart" style="width: 22px; height: 22px; fill: var(--romantic-pink);"></i>
+          </div>
+          <span style="font-size: 0.7rem; color: var(--romantic-pink); font-weight: 700; text-transform: uppercase;">Resmi</span>
+        </div>
+
+        <!-- Dhea -->
+        <div class="profile-partner-box box-dhea">
+          <img id="profile-dhea-avatar" src="assets/avatars/avatar-2.svg" alt="Dhea" class="duo-avatar">
+          <div style="font-weight: 700; font-size: 1.05rem; color: #fff;">Dhea Sri Dewi</div>
+          <div style="font-size: 0.72rem; color: var(--romantic-pink); font-weight: 600;">Panggilan: Dhea</div>
+          <div id="profile-dhea-city" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">Kampar</div>
+        </div>
+      </div>
+
+      <!-- Anniversary Love Counter -->
+      <div class="love-counter-box">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-size: 0.85rem; color: var(--text-secondary);">
+          <i data-lucide="calendar-heart" style="width: 16px; height: 16px; color: var(--romantic-pink);"></i>
+          <span>Hari Jadian Kita: <strong style="color: var(--pure-white);">31 Oktober 2026</strong></span>
+        </div>
+
+        <div class="love-counter-grid">
+          <div class="love-counter-unit">
+            <div id="love-digit-days" class="love-unit-number">00</div>
+            <div class="love-unit-label">Hari</div>
+          </div>
+          <div class="love-counter-unit">
+            <div id="love-digit-hours" class="love-unit-number">00</div>
+            <div class="love-unit-label">Jam</div>
+          </div>
+          <div class="love-counter-unit">
+            <div id="love-digit-minutes" class="love-unit-number">00</div>
+            <div class="love-unit-label">Menit</div>
+          </div>
+          <div class="love-counter-unit">
+            <div id="love-digit-seconds" class="love-unit-number">00</div>
+            <div class="love-unit-label">Detik</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 0.9rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+          💕 <em>"Awal kisah indah kita dimulai pada 31 Oktober 2026. Semoga cinta kita senantiasa abadi, saling menjaga dimanapun berada."</em>
+        </div>
+      </div>
+
+      <!-- Live Distance Highlight in Profile -->
+      <div style="background: rgba(255, 117, 184, 0.08); border: 1px solid rgba(255, 117, 184, 0.25); border-radius: var(--radius-md); padding: 0.85rem 1rem; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <i data-lucide="navigation" style="width: 18px; height: 18px; color: var(--cyan-accent);"></i>
+          <span style="font-size: 0.85rem; color: var(--pure-white); font-weight: 600;">Jarak Nyata Saat Ini:</span>
+        </div>
+        <span class="couple-distance-value" style="font-family: var(--font-mono); font-weight: 800; font-size: 1.15rem; color: var(--romantic-pink);">-- km</span>
+      </div>
+
+      <div class="modal-footer" style="margin-top: 1.25rem;">
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('couple-profile-modal').classList.remove('active')" style="width: 100%;">
+          <span>Tutup Profil</span>
+        </button>
       </div>
     </div>
   </div>

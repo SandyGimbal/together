@@ -77,6 +77,14 @@ class LocationService {
       options
     );
 
+    // Recurring continuous heartbeat every 5s so partner always receives live coordinates
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    this.heartbeatInterval = setInterval(() => {
+      if (this.currentPosition && onPositionUpdate) {
+        onPositionUpdate(this.currentPosition, true);
+      }
+    }, 5000);
+
     return true;
   }
 
@@ -85,17 +93,21 @@ class LocationService {
     const coords = position.coords;
     const now = Date.now();
 
+    const lat = Number(coords.latitude);
+    const lng = Number(coords.longitude);
+    if (isNaN(lat) || isNaN(lng)) return;
+
     const locationData = {
-      latitude: coords.latitude,
-      longitude: coords.longitude,
-      accuracy: Math.round(coords.accuracy || 10),
-      heading: coords.heading !== null && !isNaN(coords.heading) ? Math.round(coords.heading) : 0,
-      speed: coords.speed !== null && !isNaN(coords.speed) ? Math.max(0, Math.round(coords.speed * 3.6)) : 0, // km/h
+      latitude: lat,
+      longitude: lng,
+      accuracy: Math.round(Number(coords.accuracy) || 10),
+      heading: coords.heading !== null && !isNaN(coords.heading) ? Math.round(Number(coords.heading)) : 0,
+      speed: coords.speed !== null && !isNaN(coords.speed) ? Math.max(0, Math.round(Number(coords.speed) * 3.6)) : 0, // km/h
       timestamp: position.timestamp || now,
-      batteryLevel: this.batteryLevel,
-      isCharging: this.isCharging,
-      sharingEnabled: this.sharingEnabled,
-      isGhostMode: this.isGhostMode
+      batteryLevel: this.batteryLevel !== null && !isNaN(this.batteryLevel) ? Number(this.batteryLevel) : 100,
+      isCharging: Boolean(this.isCharging),
+      sharingEnabled: Boolean(this.sharingEnabled),
+      isGhostMode: Boolean(this.isGhostMode)
     };
 
     this.currentPosition = locationData;
@@ -125,13 +137,13 @@ class LocationService {
       newPos.longitude
     );
 
-    // If moving fast (> 25 km/h driving), update every 3-4s or every 20m
+    // If moving fast (> 25 km/h driving), update every 3s or every 15m
     if (newPos.speed > 25) {
-      return timeDiff > 3500 || distanceMoved > 20;
+      return timeDiff > 3000 || distanceMoved > 15;
     }
 
-    // Normal pedestrian/stationary: at least 5 seconds AND at least 5 meters moved, or every 20s heartbeat
-    return (timeDiff >= this.MIN_UPDATE_INTERVAL_MS && distanceMoved >= this.MIN_DISTANCE_METERS) || timeDiff >= 20000;
+    // Normal pedestrian/stationary: update every 5 seconds OR every 4 meters, or at least every 8s heartbeat
+    return (timeDiff >= 4000 && distanceMoved >= 3) || timeDiff >= 8000;
   }
 
   // Push location to Firebase
@@ -140,26 +152,43 @@ class LocationService {
     if (!this.sharingEnabled) return;
 
     const payload = {
-      ...this.currentPosition,
+      latitude: Number(this.currentPosition.latitude) || 0,
+      longitude: Number(this.currentPosition.longitude) || 0,
+      accuracy: Math.round(Number(this.currentPosition.accuracy) || 10),
+      heading: Math.round(Number(this.currentPosition.heading) || 0),
+      speed: Math.round(Number(this.currentPosition.speed) || 0),
+      timestamp: Number(this.currentPosition.timestamp) || Date.now(),
+      batteryLevel: Number(this.currentPosition.batteryLevel) || 100,
+      isCharging: Boolean(this.currentPosition.isCharging),
+      sharingEnabled: Boolean(this.sharingEnabled),
       lastUpdated: firebase.database.ServerValue.TIMESTAMP
     };
 
     if (window.firebaseManager && window.firebaseManager.isConfigured && window.firebaseManager.database) {
       try {
         const db = window.firebaseManager.database;
+        // Primary location write
         await db.ref(`couples/${coupleId}/locations/${uid}`).set(payload);
 
-        // Also record location history breadcrumb point if history is enabled
-        const historyRef = db.ref(`couples/${coupleId}/history/${uid}`).push();
-        await historyRef.set({
-          lat: payload.latitude,
-          lng: payload.longitude,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
+        // Also update member online status and ping
+        db.ref(`couples/${coupleId}/members/${uid}/online`).set(true).catch(() => {});
+        db.ref(`couples/${coupleId}/members/${uid}/lastSeen`).set(firebase.database.ServerValue.TIMESTAMP).catch(() => {});
 
-        // Set onDisconnect handler for connection status
-        db.ref(`couples/${coupleId}/members/${uid}/online`).onDisconnect().set(false);
-        db.ref(`couples/${coupleId}/members/${uid}/lastSeen`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+        // Optional breadcrumb history (non-blocking)
+        try {
+          const historyRef = db.ref(`couples/${coupleId}/history/${uid}`).push();
+          historyRef.set({
+            lat: payload.latitude,
+            lng: payload.longitude,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+          }).catch(() => {});
+        } catch (hErr) {}
+
+        // Set onDisconnect handler
+        try {
+          db.ref(`couples/${coupleId}/members/${uid}/online`).onDisconnect().set(false);
+          db.ref(`couples/${coupleId}/members/${uid}/lastSeen`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+        } catch (dErr) {}
       } catch (err) {
         console.error("Firebase location broadcast error:", err);
       }
@@ -171,6 +200,10 @@ class LocationService {
     if (this.watchId !== null) {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
+    }
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
     }
   }
 

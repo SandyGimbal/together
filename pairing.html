@@ -6,6 +6,13 @@
   <title>Hubungkan Pasangan — TOGETHER</title>
   
   <link rel="icon" type="image/svg+xml" href="assets/icons/logo.svg">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#080B14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TOGETHER">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,7 +126,11 @@
         <span class="brand-name"><span class="gradient-blue-text">TO</span><span class="gradient-pink-text">GETHER</span></span>
       </a>
     </div>
-    <div style="display: flex; align-items: center; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <button class="btn btn-secondary btn-sm btn-install-pwa" title="Pasang Aplikasi ke Layar Utama" style="display: none;">
+        <i data-lucide="download" style="width: 15px; height: 15px; color: var(--cyan-accent);"></i>
+        <span>Pasang App</span>
+      </button>
       <span id="current-user-badge" class="status-badge recent" style="padding: 0.4rem 0.8rem;">
         <span class="status-dot"></span> Memeriksa Akun...
       </span>

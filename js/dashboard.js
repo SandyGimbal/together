@@ -139,23 +139,50 @@ class DashboardController {
       const data = snapshot.val();
       if (!data) return;
 
-      // Identify partner UID
+      // 1. Identify partner UID from members
       if (data.members) {
         const memberKeys = Object.keys(data.members);
         this.partnerUid = memberKeys.find(key => key !== this.user.uid);
 
         if (this.partnerUid && data.members[this.partnerUid]) {
           this.partnerProfile = data.members[this.partnerUid];
+          this.ensurePartnerNames();
           this.updatePartnerProfileUI(this.partnerProfile);
         }
       }
 
-      // Check partner location updates
-      if (this.partnerUid && data.locations && data.locations[this.partnerUid]) {
-        const pLoc = data.locations[this.partnerUid];
-        this.handlePartnerLocationUpdate(pLoc);
+      // 2. Fallback partner UID from locations
+      if (!this.partnerUid && data.locations) {
+        const locKeys = Object.keys(data.locations);
+        this.partnerUid = locKeys.find(key => key !== this.user.uid);
+      }
+
+      // 3. Check partner location updates
+      if (data.locations) {
+        const partnerKey = this.partnerUid || Object.keys(data.locations).find(key => key !== this.user.uid);
+        if (partnerKey && data.locations[partnerKey]) {
+          const pLoc = data.locations[partnerKey];
+          if (pLoc && typeof pLoc.latitude === 'number' && typeof pLoc.longitude === 'number' && (pLoc.latitude !== 0 || pLoc.longitude !== 0)) {
+            this.handlePartnerLocationUpdate(pLoc);
+          }
+        }
       }
     });
+
+    // 4. Dedicated Child-level Location Watcher for Instant GPS Push
+    const locsRef = db.ref(`couples/${this.coupleId}/locations`);
+    const handleLocSnap = (snap) => {
+      if (snap.key && snap.key !== this.user.uid) {
+        const pLoc = snap.val();
+        if (pLoc && typeof pLoc.latitude === 'number' && typeof pLoc.longitude === 'number' && (pLoc.latitude !== 0 || pLoc.longitude !== 0)) {
+          this.partnerUid = snap.key;
+          this.ensurePartnerNames();
+          this.handlePartnerLocationUpdate(pLoc);
+        }
+      }
+    };
+    locsRef.on('child_changed', handleLocSnap);
+    locsRef.on('child_added', handleLocSnap);
 
     // Monitor Firebase Connection status
     const connectedRef = db.ref('.info/connected');
@@ -172,6 +199,26 @@ class DashboardController {
         }
       }
     });
+  }
+
+  // Ensure partner names are romantically populated
+  ensurePartnerNames() {
+    const isCurrentUserSandy = this.userProfile?.displayName?.toLowerCase().includes('sandy') ||
+                               this.user?.email?.toLowerCase().includes('sandy');
+
+    if (!this.partnerProfile) {
+      this.partnerProfile = {
+        displayName: isCurrentUserSandy ? 'Dhea Sri Dewi' : 'Sandy',
+        nickname: isCurrentUserSandy ? 'Dhea' : 'Sandy',
+        avatar: isCurrentUserSandy ? 'assets/avatars/avatar-2.svg' : 'assets/avatars/avatar-1.svg',
+        online: true
+      };
+    } else {
+      if (!this.partnerProfile.displayName || this.partnerProfile.displayName.startsWith('Pasangan')) {
+        this.partnerProfile.displayName = isCurrentUserSandy ? 'Dhea Sri Dewi' : 'Sandy';
+        this.partnerProfile.nickname = isCurrentUserSandy ? 'Dhea' : 'Sandy';
+      }
+    }
   }
 
   // Setup Simulated Couple Mode for local testing
@@ -249,7 +296,8 @@ class DashboardController {
 
   // Partner Location Update Handler
   handlePartnerLocationUpdate(pLoc) {
-    if (!pLoc || !pLoc.latitude || !pLoc.longitude) return;
+    if (!pLoc || typeof pLoc.latitude !== 'number' || typeof pLoc.longitude !== 'number') return;
+    if (pLoc.latitude === 0 && pLoc.longitude === 0) return;
 
     this.partnerLocation = pLoc;
 
@@ -313,19 +361,39 @@ class DashboardController {
     if (mobMyCoords) mobMyCoords.innerText = `${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)}`;
     if (mobMySpeed) mobMySpeed.innerText = `${loc.speed} km/h`;
     if (mobMyBattery) mobMyBattery.innerText = loc.batteryLevel !== null ? `${loc.batteryLevel}% ${loc.isCharging ? '⚡' : ''}` : '--';
+
+    // Update Duo Profile Modal Location for Me
+    const isCurrentUserSandy = this.userProfile?.displayName?.toLowerCase().includes('sandy') ||
+                               this.user?.email?.toLowerCase().includes('sandy');
+    const myCityEl = document.getElementById(isCurrentUserSandy ? 'profile-sandy-city' : 'profile-dhea-city');
+    if (myCityEl && loc.latitude && loc.longitude) {
+      myCityEl.innerText = `${loc.latitude.toFixed(3)}, ${loc.longitude.toFixed(3)}`;
+    }
   }
 
   // Update Partner Telemetry Card in UI
   updatePartnerProfileUI(profile) {
+    const isCurrentUserSandy = this.userProfile?.displayName?.toLowerCase().includes('sandy') ||
+                               this.user?.email?.toLowerCase().includes('sandy');
+
+    const displayName = profile.displayName || (isCurrentUserSandy ? 'Dhea Sri Dewi' : 'Sandy');
+    const avatar = profile.avatar || (isCurrentUserSandy ? 'assets/avatars/avatar-2.svg' : 'assets/avatars/avatar-1.svg');
+
     const pNameEl = document.getElementById('partner-display-name');
     const pAvatarEl = document.getElementById('partner-avatar-img');
     const pTopName = document.getElementById('top-bar-partner-name');
     const pTopAvatar = document.getElementById('top-bar-partner-avatar');
 
-    if (pNameEl) pNameEl.innerText = profile.displayName || 'Pasangan';
-    if (pAvatarEl) pAvatarEl.src = profile.avatar || 'assets/avatars/avatar-2.svg';
-    if (pTopName) pTopName.innerText = profile.displayName || 'Pasangan';
-    if (pTopAvatar) pTopAvatar.src = profile.avatar || 'assets/avatars/avatar-2.svg';
+    if (pNameEl) pNameEl.innerText = displayName;
+    if (pAvatarEl) pAvatarEl.src = avatar;
+    if (pTopName) pTopName.innerText = profile.nickname || displayName;
+    if (pTopAvatar) pTopAvatar.src = avatar;
+
+    // Update Duo Modal Avatars
+    const sandyAvatarModal = document.getElementById('profile-sandy-avatar');
+    const dheaAvatarModal = document.getElementById('profile-dhea-avatar');
+    if (sandyAvatarModal) sandyAvatarModal.src = isCurrentUserSandy ? (this.userProfile?.avatar || 'assets/avatars/avatar-1.svg') : avatar;
+    if (dheaAvatarModal) dheaAvatarModal.src = isCurrentUserSandy ? avatar : (this.userProfile?.avatar || 'assets/avatars/avatar-2.svg');
   }
 
   updatePartnerTelemetryUI(loc) {
@@ -346,6 +414,14 @@ class DashboardController {
     }
     if (pBatteryEl) {
       pBatteryEl.innerText = loc.batteryLevel !== null ? `${loc.batteryLevel}% ${loc.isCharging ? '⚡' : ''}` : '--';
+    }
+
+    // Update Duo Profile Modal Location info
+    const isCurrentUserSandy = this.userProfile?.displayName?.toLowerCase().includes('sandy') ||
+                               this.user?.email?.toLowerCase().includes('sandy');
+    const partnerCityEl = document.getElementById(isCurrentUserSandy ? 'profile-dhea-city' : 'profile-sandy-city');
+    if (partnerCityEl && loc.latitude && loc.longitude) {
+      partnerCityEl.innerText = `${loc.latitude.toFixed(3)}, ${loc.longitude.toFixed(3)}`;
     }
 
     // Freshness evaluation
@@ -589,6 +665,47 @@ class DashboardController {
       if (confirm("Apakah Anda yakin ingin keluar dari akun?")) {
         await window.authService.logout();
       }
+    });
+
+    // 12. Couple Profile & Anniversary Modal Handlers
+    const profileModal = document.getElementById('couple-profile-modal');
+    document.getElementById('btn-open-couple-profile')?.addEventListener('click', () => {
+      profileModal?.classList.add('active');
+    });
+    document.getElementById('btn-close-couple-profile')?.addEventListener('click', () => {
+      profileModal?.classList.remove('active');
+    });
+
+    // 13. Top Bar Partner Pill Click -> Focus Partner
+    document.getElementById('top-bar-partner-container')?.addEventListener('click', () => {
+      window.mapEngine.locatePartner();
+    });
+
+    // 14. Force Sync GPS Button
+    document.getElementById('btn-force-sync')?.addEventListener('click', () => {
+      const syncBtn = document.getElementById('btn-force-sync');
+      if (syncBtn) syncBtn.classList.add('animate-spin');
+      
+      if (this.myLocation && this.coupleId && this.user) {
+        window.locationService.broadcastLocation(this.coupleId, this.user.uid);
+      }
+      
+      // Also try to query Firebase partner location immediately
+      if (window.firebaseManager?.database && this.coupleId && this.partnerUid) {
+        window.firebaseManager.database.ref(`couples/${this.coupleId}/locations/${this.partnerUid}`).once('value')
+          .then(snap => {
+            const pLoc = snap.val();
+            if (pLoc && typeof pLoc.latitude === 'number' && typeof pLoc.longitude === 'number' && (pLoc.latitude !== 0 || pLoc.longitude !== 0)) {
+              this.handlePartnerLocationUpdate(pLoc);
+            }
+          })
+          .catch(() => {});
+      }
+
+      window.notifier.showToast("Sinkronisasi GPS", "Mengirim koordinat terkini ke pasangan...", "success", 2000);
+      setTimeout(() => {
+        if (syncBtn) syncBtn.classList.remove('animate-spin');
+      }, 1200);
     });
   }
 }

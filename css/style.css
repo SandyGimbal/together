@@ -887,3 +887,145 @@ a:hover {
   animation: progressPulse 1.8s ease-in-out infinite;
 }
 
+/* ==========================================================================
+   Romantic Couple Profile & Live Love Counter
+   ========================================================================== */
+.couple-love-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, rgba(255, 117, 184, 0.18) 0%, rgba(56, 135, 255, 0.18) 100%);
+  border: 1px solid rgba(255, 117, 184, 0.4);
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 117, 184, 0.2);
+  transition: all var(--transition-fast);
+}
+.couple-love-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 117, 184, 0.8);
+  box-shadow: 0 6px 20px rgba(255, 117, 184, 0.35);
+}
+.couple-love-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--pure-white);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.couple-love-days {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--romantic-pink);
+  font-family: var(--font-mono);
+}
+
+/* Profile Modal Styles */
+.couple-profile-dialog {
+  max-width: 600px !important;
+  border: 1px solid rgba(255, 117, 184, 0.35) !important;
+  background: linear-gradient(180deg, rgba(16, 26, 44, 0.95) 0%, rgba(8, 11, 20, 0.98) 100%) !important;
+}
+.couple-profile-duo {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.profile-partner-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-smooth);
+}
+.profile-partner-box.box-sandy {
+  border-color: rgba(56, 135, 255, 0.4);
+}
+.profile-partner-box.box-dhea {
+  border-color: rgba(255, 117, 184, 0.4);
+}
+.profile-partner-box .duo-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2.5px solid var(--cyan-accent);
+  background: #080B14;
+  box-shadow: 0 0 15px rgba(56, 135, 255, 0.5);
+}
+.profile-partner-box.box-dhea .duo-avatar {
+  border-color: var(--romantic-pink);
+  box-shadow: 0 0 15px rgba(255, 117, 184, 0.5);
+}
+.duo-heart-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+.duo-heart-pulse {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 117, 184, 0.15);
+  border: 1.5px solid var(--romantic-pink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--romantic-pink);
+  animation: pulseGlow 2s infinite;
+}
+
+/* Love Counter Grid */
+.love-counter-box {
+  background: rgba(8, 14, 26, 0.85);
+  border: 1px dashed rgba(255, 117, 184, 0.4);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  margin: 1.25rem 0;
+}
+.love-counter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.love-counter-unit {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.3rem;
+}
+.love-unit-number {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--romantic-pink);
+  text-shadow: 0 0 10px rgba(255, 117, 184, 0.5);
+}
+.love-unit-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-top: 0.15rem;
+}
+
+/* PWA Install Button */
+.btn-install-pwa {
+  background: linear-gradient(135deg, rgba(56, 135, 255, 0.25) 0%, rgba(54, 217, 255, 0.25) 100%) !important;
+  border-color: var(--cyan-accent) !important;
+  color: var(--cyan-accent) !important;
+  animation: pulseGlow 3s infinite;
+}
+
+

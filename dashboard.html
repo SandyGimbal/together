@@ -169,6 +169,76 @@
     </div>
   </div>
 
+  <!-- Unified Top Navbar (Full Width Glass Header) -->
+  <header class="dashboard-navbar">
+    <!-- Left: Brand & Partner Status Pill -->
+    <div style="display: flex; align-items: center; gap: 0.85rem;">
+      <button id="btn-toggle-sidebar" class="btn btn-navbar-action btn-icon-only" title="Buka Menu Telemetri" style="display: none;">
+        <i data-lucide="menu" style="width: 18px; height: 18px;"></i>
+      </button>
+
+      <a href="index.html" class="navbar-brand">
+        <img src="assets/icons/logo.svg" alt="TOGETHER" class="brand-logo-img" style="width: 30px; height: 30px;">
+        <span class="brand-name" style="font-size: 1.15rem;"><span class="gradient-blue-text">TO</span><span class="gradient-pink-text">GETHER</span></span>
+      </a>
+
+      <!-- Quick Partner Status Pill -->
+      <div class="navbar-partner-pill" id="btn-navbar-partner" title="Klik untuk pusatkan peta ke pasangan">
+        <img id="navbar-partner-avatar" src="assets/avatars/avatar-2.svg" alt="Partner" class="navbar-partner-avatar">
+        <div style="display: flex; flex-direction: column;">
+          <div class="navbar-partner-name-row">
+            <span id="navbar-partner-name" class="navbar-partner-name">Dhea</span>
+            <span id="navbar-live-status" class="navbar-online-dot live" title="Koneksi Realtime"></span>
+          </div>
+          <span id="navbar-partner-distance" class="navbar-partner-distance">-- km</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Romantic Couple Anniversary Pill (Sandy 💕 Dhea — 31 Okt 2026) -->
+    <button id="btn-navbar-couple-profile" class="navbar-couple-pill" title="Buka Profil Sandy & Dhea">
+      <i data-lucide="heart" class="navbar-heart-pulse"></i>
+      <span class="navbar-couple-title">Sandy 💕 Dhea</span>
+      <span class="couple-love-days navbar-anniversary-badge">Hari ke-4 • 31 Okt 2026</span>
+    </button>
+
+    <!-- Right: Love Ping, Profil, Sync, PWA, Fullscreen -->
+    <div style="display: flex; align-items: center; gap: 0.55rem;">
+      <!-- Kirim Love Ping / Notifikasi Pasangan -->
+      <button id="btn-navbar-love-ping" class="btn btn-love-ping" title="Kirim Notifikasi Cinta & Bel ke Pasangan">
+        <i data-lucide="bell-ring" style="width: 16px; height: 16px;"></i>
+        <span class="hide-on-mobile">Kirim Ping 💕</span>
+      </button>
+
+      <!-- Profil Button -->
+      <button id="btn-navbar-profile" class="btn btn-navbar-action" title="Lihat Profil Pasangan & Kisah Cinta">
+        <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+        <span class="hide-on-mobile">Profil</span>
+      </button>
+
+      <!-- Segarkan GPS Satelit -->
+      <button id="btn-force-sync" class="btn btn-navbar-action btn-icon-only" title="Segarkan GPS Satelit & Minta Lokasi Pasangan">
+        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+      </button>
+
+      <!-- PWA Install Button (Appears if installable on Chrome/Brave) -->
+      <button id="btn-pwa-install" class="btn btn-install-pwa btn-navbar-pwa" style="display: none;" title="Pasang Aplikasi (PWA) di HP / Laptop">
+        <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+        <span class="hide-on-mobile">Pasang App</span>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button id="btn-fullscreen" class="btn btn-navbar-action btn-icon-only hide-on-mobile" title="Layar Penuh">
+        <i data-lucide="maximize" style="width: 16px; height: 16px;"></i>
+      </button>
+
+      <!-- Scanner Line Effect Toggle -->
+      <button id="btn-scanner" class="btn btn-navbar-action btn-icon-only hide-on-mobile" title="Scanner Radar Satelit">
+        <i data-lucide="radar" style="width: 16px; height: 16px;"></i>
+      </button>
+    </div>
+  </header>
+
   <!-- Main Viewport Layout -->
   <div class="dashboard-layout">
 
@@ -350,49 +420,6 @@
       <!-- Satellite Scanner Line Effect -->
       <div id="map-scanner-line" class="map-scanner-line"></div>
 
-      <!-- Floating Top Dynamic Bar -->
-      <div class="floating-top-bar">
-        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-          <button id="btn-toggle-sidebar" class="map-control-btn" title="Buka Menu Telemetri" style="display: none;">
-            <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
-          </button>
-          
-          <!-- Partner Pill -->
-          <div class="floating-partner-pill" id="top-bar-partner-container" title="Klik untuk fokus ke pasangan">
-            <img id="top-bar-partner-avatar" src="assets/avatars/avatar-2.svg" alt="Partner" style="width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--romantic-pink);">
-            <div>
-              <div id="top-bar-partner-name" style="font-weight: 700; font-size: 0.9rem; line-height: 1.2;">Pasangan</div>
-              <div id="top-bar-distance-text" style="font-size: 0.72rem; color: var(--cyan-accent); font-weight: 600;">-- dari Anda</div>
-            </div>
-          </div>
-
-          <!-- Romantic Couple Pill (Sandy 💕 Dhea — 31 Okt 2026) -->
-          <div id="btn-open-couple-profile" class="couple-love-pill" title="Buka Profil Sandy & Dhea">
-            <i data-lucide="heart" style="width: 14px; height: 14px; fill: var(--romantic-pink); color: var(--romantic-pink);"></i>
-            <div class="couple-love-title">Sandy 💕 Dhea</div>
-            <span class="couple-love-days">Hari ke-3</span>
-          </div>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 0.6rem;">
-          <!-- PWA Install Button (Appears if installable on Chrome/Brave) -->
-          <button id="btn-pwa-install" class="btn-install-pwa map-control-btn" title="Pasang Aplikasi (PWA)" style="display: none;">
-            <i data-lucide="download" style="width: 18px; height: 18px;"></i>
-          </button>
-          
-          <!-- Force Sync GPS Button -->
-          <button id="btn-force-sync" class="map-control-btn" title="Segarkan Sinkronisasi GPS">
-            <i data-lucide="refresh-cw" style="width: 17px; height: 17px;"></i>
-          </button>
-          <button id="btn-scanner" class="map-control-btn" title="Toggle Scanner Radar Satelit">
-            <i data-lucide="radar" style="width: 18px; height: 18px;"></i>
-          </button>
-          <button id="btn-fullscreen" class="map-control-btn" title="Layar Penuh">
-            <i data-lucide="maximize" style="width: 18px; height: 18px;"></i>
-          </button>
-        </div>
-      </div>
-
       <!-- Leaflet Map Canvas -->
       <div id="map"></div>
 
@@ -528,12 +555,81 @@
               <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
             </button>
           </div>
-            </button>
-          </div>
         </div>
       </div>
 
     </main>
+  </div>
+
+  <!-- Modal: Kirim Notifikasi Cinta ke Pasangan (Love Ping) -->
+  <div id="love-ping-modal" class="modal-overlay">
+    <div class="modal-dialog love-ping-dialog" style="max-width: 520px; border-color: rgba(255, 117, 184, 0.45); background: linear-gradient(180deg, rgba(16, 26, 44, 0.96) 0%, rgba(8, 11, 20, 0.98) 100%);">
+      <div class="modal-header" style="margin-bottom: 0.85rem;">
+        <div class="modal-title" style="color: var(--romantic-pink);">
+          <i data-lucide="bell-ring" style="width: 22px; height: 22px;"></i>
+          <span>Kirim Notifikasi ke Pasangan 💕</span>
+        </div>
+        <button type="button" id="btn-close-love-ping" class="modal-close-btn">&times;</button>
+      </div>
+
+      <p style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
+        Kirim pesan manis, sapaan romantis, atau minta posisi GPS langsung ke ponsel pasangan. Ponsel pasangan akan bergetar dan membunyikan lonceng cinta!
+      </p>
+
+      <!-- Quick Preset Buttons -->
+      <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: var(--cyan-accent); margin-bottom: 0.6rem; letter-spacing: 0.05em;">
+        Pilihan Pesan Romantis Cepat:
+      </div>
+      <div class="quick-pings-grid">
+        <button type="button" class="btn-quick-ping" data-ping="Aku kangen kamu! 💕">
+          <i data-lucide="heart" style="width: 16px; height: 16px; fill: var(--romantic-pink); color: var(--romantic-pink); flex-shrink: 0;"></i>
+          <span>Aku kangen kamu! 💕</span>
+        </button>
+        <button type="button" class="btn-quick-ping" data-ping="Kamu lagi di mana sekarang sayang? 📍">
+          <i data-lucide="map-pin" style="width: 16px; height: 16px; color: var(--cyan-accent); flex-shrink: 0;"></i>
+          <span>Lagi di mana sekarang? 📍</span>
+        </button>
+        <button type="button" class="btn-quick-ping" data-ping="Hati-hati di jalan ya sayang! 🥰">
+          <i data-lucide="shield" style="width: 16px; height: 16px; color: #10B981; flex-shrink: 0;"></i>
+          <span>Hati-hati di jalan ya! 🥰</span>
+        </button>
+        <button type="button" class="btn-quick-ping" data-ping="Sayang udah makan belum? 🍽️">
+          <i data-lucide="coffee" style="width: 16px; height: 16px; color: #F59E0B; flex-shrink: 0;"></i>
+          <span>Sayang udah makan? 🍽️</span>
+        </button>
+        <button type="button" class="btn-quick-ping" data-ping="Selamat istirahat ya cintaku! 🌙">
+          <i data-lucide="moon" style="width: 16px; height: 16px; color: var(--soft-purple); flex-shrink: 0;"></i>
+          <span>Selamat istirahat cintaku! 🌙</span>
+        </button>
+        <button type="button" class="btn-quick-ping" data-ping="Love you so much, Dhea! ❤️">
+          <i data-lucide="sparkles" style="width: 16px; height: 16px; color: var(--romantic-pink); flex-shrink: 0;"></i>
+          <span>Love you so much! ❤️</span>
+        </button>
+      </div>
+
+      <!-- Custom Input Form -->
+      <div style="margin-top: 1.25rem;">
+        <label for="custom-ping-input" style="display: block; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem; letter-spacing: 0.05em;">
+          Atau Tulis Pesan Sendiri:
+        </label>
+        <div style="display: flex; gap: 0.6rem;">
+          <input type="text" id="custom-ping-input" class="form-input" placeholder="Tulis pesan manis untuk pasangan..." maxlength="120" style="flex: 1; background: rgba(8, 14, 26, 0.8); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; color: #fff;">
+          <button type="button" id="btn-send-custom-ping" class="btn btn-primary" style="flex-shrink: 0; background: var(--gradient-romantic); border: none;">
+            <i data-lucide="send" style="width: 15px; height: 15px;"></i>
+            <span>Kirim</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="margin-top: 1.5rem; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem;">
+          <i data-lucide="volume-2" style="width: 14px; height: 14px; color: var(--romantic-pink);"></i> Notifikasi bersuara melodi cinta & getaran
+        </span>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('love-ping-modal').classList.remove('active')">
+          Tutup
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Leave Couple Room Modal -->

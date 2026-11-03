@@ -129,6 +129,14 @@ class DashboardController {
     );
   }
 
+  // Validation helper for GPS coordinates
+  isValidLocation(loc) {
+    if (!loc) return false;
+    const lat = parseFloat(loc.latitude ?? loc.lat);
+    const lng = parseFloat(loc.longitude ?? loc.lng);
+    return !isNaN(lat) && !isNaN(lng) && (Math.abs(lat) > 0.0001 || Math.abs(lng) > 0.0001);
+  }
+
   // Firebase Realtime Listener
   subscribeToFirebaseCouple() {
     const db = window.firebaseManager.database;
@@ -157,15 +165,44 @@ class DashboardController {
         this.partnerUid = locKeys.find(key => key !== this.user.uid);
       }
 
-      // 3. Check partner location updates
-      if (data.locations) {
-        const partnerKey = this.partnerUid || Object.keys(data.locations).find(key => key !== this.user.uid);
-        if (partnerKey && data.locations[partnerKey]) {
-          const pLoc = data.locations[partnerKey];
-          if (pLoc && typeof pLoc.latitude === 'number' && typeof pLoc.longitude === 'number' && (pLoc.latitude !== 0 || pLoc.longitude !== 0)) {
-            this.handlePartnerLocationUpdate(pLoc);
+      // 3. Multi-path partner location extraction (Sandy & Dhea synchronization)
+      let foundPartnerLoc = null;
+
+      // Path A: data.locations[partnerUid]
+      if (this.partnerUid && data.locations && this.isValidLocation(data.locations[this.partnerUid])) {
+        foundPartnerLoc = data.locations[this.partnerUid];
+      }
+
+      // Path B: data.members[partnerUid].lastLocation
+      if (!foundPartnerLoc && this.partnerUid && data.members && data.members[this.partnerUid] && this.isValidLocation(data.members[this.partnerUid].lastLocation)) {
+        foundPartnerLoc = data.members[this.partnerUid].lastLocation;
+      }
+
+      // Path C: Any location entry not belonging to current user
+      if (!foundPartnerLoc && data.locations) {
+        for (const [key, loc] of Object.entries(data.locations)) {
+          if (key !== this.user.uid && this.isValidLocation(loc)) {
+            foundPartnerLoc = loc;
+            this.partnerUid = key;
+            break;
           }
         }
+      }
+
+      // Path D: Any member lastLocation not belonging to current user
+      if (!foundPartnerLoc && data.members) {
+        for (const [key, member] of Object.entries(data.members)) {
+          if (key !== this.user.uid && this.isValidLocation(member.lastLocation)) {
+            foundPartnerLoc = member.lastLocation;
+            this.partnerUid = key;
+            break;
+          }
+        }
+      }
+
+      if (foundPartnerLoc) {
+        this.ensurePartnerNames();
+        this.handlePartnerLocationUpdate(foundPartnerLoc);
       }
     });
 
@@ -174,7 +211,7 @@ class DashboardController {
     const handleLocSnap = (snap) => {
       if (snap.key && snap.key !== this.user.uid) {
         const pLoc = snap.val();
-        if (pLoc && typeof pLoc.latitude === 'number' && typeof pLoc.longitude === 'number' && (pLoc.latitude !== 0 || pLoc.longitude !== 0)) {
+        if (this.isValidLocation(pLoc)) {
           this.partnerUid = snap.key;
           this.ensurePartnerNames();
           this.handlePartnerLocationUpdate(pLoc);
@@ -184,21 +221,177 @@ class DashboardController {
     locsRef.on('child_changed', handleLocSnap);
     locsRef.on('child_added', handleLocSnap);
 
+    // 5. Watch member changes (for lastLocation updates)
+    const membersRef = db.ref(`couples/${this.coupleId}/members`);
+    membersRef.on('child_changed', (snap) => {
+      if (snap.key && snap.key !== this.user.uid) {
+        const member = snap.val();
+        if (member && this.isValidLocation(member.lastLocation)) {
+          this.partnerUid = snap.key;
+          this.ensurePartnerNames();
+          this.handlePartnerLocationUpdate(member.lastLocation);
+        }
+      }
+    });
+
+    // 6. Initialize Love Ping / Notification Listener
+    this.initLovePingSystem();
+
     // Monitor Firebase Connection status
     const connectedRef = db.ref('.info/connected');
     connectedRef.on('value', (snap) => {
       const isOnline = snap.val() === true;
       const statusPill = document.getElementById('connection-status-pill');
+      const navbarOnlineDot = document.getElementById('navbar-live-status');
       if (statusPill) {
         if (isOnline) {
           statusPill.innerHTML = `<span class="status-dot"></span> Cloud Sync Aktif`;
           statusPill.className = `status-badge live`;
         } else {
-          statusPill.innerHTML = `<span class="status-dot"></span> Reconnecting...`;
+          statusPill.innerHTML = `<span class="status-dot"></span> Menghubungkan...`;
           statusPill.className = `status-badge idle`;
         }
       }
+      if (navbarOnlineDot) {
+        navbarOnlineDot.className = isOnline ? 'navbar-online-indicator live' : 'navbar-online-indicator idle';
+      }
     });
+  }
+
+  // Love Ping & Romantic Notification System
+  initLovePingSystem() {
+    const db = window.firebaseManager?.database;
+    if (!db || !this.coupleId) return;
+
+    this.sessionStartTime = Date.now();
+    const pingsRef = db.ref(`couples/${this.coupleId}/pings`);
+
+    pingsRef.limitToLast(1).on('child_added', (snap) => {
+      const ping = snap.val();
+      if (!ping) return;
+
+      // Only respond to pings created after this page loaded
+      const pingTime = ping.timestamp || 0;
+      if (pingTime < this.sessionStartTime - 5000) return;
+
+      // Ignore pings sent by oneself
+      if (ping.senderUid === this.user?.uid) return;
+
+      console.log("💌 Received Love Ping from Partner:", ping);
+
+      // 1. Play sweet romantic chime sound
+      this.playRomanticChime();
+
+      // 2. Vibrate mobile device if supported
+      if ('vibrate' in navigator) {
+        try {
+          navigator.vibrate([250, 120, 250, 120, 450]);
+        } catch (vErr) {}
+      }
+
+      // 3. Show Romantic In-App Toast
+      const partnerName = this.partnerProfile?.nickname || this.partnerProfile?.displayName || 'Pasangan';
+      window.notifier?.showToast(
+        `Notifikasi Cinta dari ${partnerName} 💕`,
+        ping.message || 'Mengirim getaran cinta untukmu!',
+        'romantic',
+        8000
+      );
+
+      // 4. System Push Notification if permission granted
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(`Notif Cinta dari ${partnerName} 💕`, {
+            body: ping.message || 'Aku sedang memikirkanmu!',
+            icon: this.partnerProfile?.avatar || 'assets/avatars/avatar-2.svg'
+          });
+        } catch (nErr) {}
+      }
+
+      // 5. If partner asked "di mana" or ping is location request, force immediate GPS broadcast
+      if (ping.type === 'location_request' || (ping.message && ping.message.toLowerCase().includes('di mana'))) {
+        console.log("📍 Location requested by partner. Broadcasting current coordinates...");
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            window.locationService.handleRawPosition(pos, (locData) => {
+              this.myLocation = locData;
+              window.locationService.broadcastLocation(this.coupleId, this.user.uid, locData);
+              window.mapEngine.updateMyMarker(locData, this.userProfile);
+              this.recalculateCoupleDistance();
+            });
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        );
+      }
+    });
+  }
+
+  // Send a Love Ping to Partner
+  async sendLovePing(messageText, pingType = 'love_ping') {
+    if (!messageText || !messageText.trim()) return;
+    const db = window.firebaseManager?.database;
+    if (!db || !this.coupleId || !this.user) {
+      window.notifier?.showToast("Love Ping", "Mode offline atau database belum terhubung.", "warning");
+      return;
+    }
+
+    try {
+      const pingRef = db.ref(`couples/${this.coupleId}/pings`).push();
+      await pingRef.set({
+        senderUid: this.user.uid,
+        senderName: this.userProfile?.displayName || 'Sandy',
+        message: messageText.trim(),
+        type: pingType,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+
+      // Also force immediate broadcast of my location so partner's map updates in tandem
+      if (this.myLocation) {
+        window.locationService.broadcastLocation(this.coupleId, this.user.uid, this.myLocation);
+      }
+
+      window.notifier?.showToast("Notifikasi Cinta Terkirim 💕", `Pesan "${messageText}" berhasil dikirim ke pasangan.`, "romantic", 3500);
+      
+      // Close ping modal
+      document.getElementById('love-ping-modal')?.classList.remove('active');
+    } catch (err) {
+      console.error("Gagal mengirim love ping:", err);
+      window.notifier?.showToast("Gagal Mengirim", err.message, "error");
+    }
+  }
+
+  // Pure Web Audio API Harmonic Chime Synthesizer (Zero asset download required)
+  playRomanticChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+
+      // Sparkling couple chime frequencies: E5 (659.25Hz), G#5 (830.61Hz), B5 (987.77Hz), E6 (1318.51Hz)
+      const freqs = [659.25, 830.61, 987.77, 1318.51];
+      const now = ctx.currentTime;
+
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.11);
+
+        gain.gain.setValueAtTime(0, now + idx * 0.11);
+        gain.gain.linearRampToValueAtTime(0.22, now + idx * 0.11 + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.11 + 0.9);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + idx * 0.11);
+        osc.stop(now + idx * 0.11 + 0.95);
+      });
+    } catch (e) {
+      console.warn("AudioContext chime note:", e.message);
+    }
   }
 
   // Ensure partner names are romantically populated
@@ -296,25 +489,47 @@ class DashboardController {
 
   // Partner Location Update Handler
   handlePartnerLocationUpdate(pLoc) {
-    if (!pLoc || typeof pLoc.latitude !== 'number' || typeof pLoc.longitude !== 'number') return;
-    if (pLoc.latitude === 0 && pLoc.longitude === 0) return;
+    if (!this.isValidLocation(pLoc)) return;
 
-    this.partnerLocation = pLoc;
+    const lat = parseFloat(pLoc.latitude ?? pLoc.lat);
+    const lng = parseFloat(pLoc.longitude ?? pLoc.lng);
+    const accuracy = Math.round(Number(pLoc.accuracy) || 15);
+    const speed = Math.max(0, Math.round(Number(pLoc.speed) || 0));
+    const heading = Math.round(Number(pLoc.heading) || 0);
+    const timestamp = Number(pLoc.timestamp || pLoc.lastUpdated) || Date.now();
+    const battery = pLoc.batteryLevel !== undefined ? Number(pLoc.batteryLevel) : null;
+    const isCharging = Boolean(pLoc.isCharging);
+    const sharingEnabled = pLoc.sharingEnabled !== false;
+
+    const sanitized = {
+      ...pLoc,
+      latitude: lat,
+      longitude: lng,
+      accuracy,
+      speed,
+      heading,
+      timestamp,
+      batteryLevel: battery,
+      isCharging,
+      sharingEnabled
+    };
+
+    this.partnerLocation = sanitized;
 
     // Check if partner disabled sharing
-    if (pLoc.sharingEnabled === false) {
+    if (!sharingEnabled) {
       this.updatePartnerOfflineNotice("Pasangan menjeda pembagian lokasi.");
       return;
     }
 
     // Update partner telemetry UI cards
-    this.updatePartnerTelemetryUI(pLoc);
+    this.updatePartnerTelemetryUI(sanitized);
 
     // Update Map Marker
-    window.mapEngine.updatePartnerMarker(pLoc, this.partnerProfile);
+    window.mapEngine.updatePartnerMarker(sanitized, this.partnerProfile);
 
     // Auto-fit both partners on first mutual detection
-    if (!this.hasAutoFittedBoth && this.myLocation && pLoc.latitude && pLoc.longitude) {
+    if (!this.hasAutoFittedBoth && this.myLocation && lat && lng) {
       this.hasAutoFittedBoth = true;
       setTimeout(() => {
         window.mapEngine.fitBoth();
@@ -324,8 +539,8 @@ class DashboardController {
     // Recalculate distance
     this.recalculateCoupleDistance();
 
-    // Check Geofence & Arrival
-    this.checkGeofenceTrigger(pLoc);
+    // Check Geofence & Proximity Arrival
+    this.checkGeofenceTrigger(sanitized);
   }
 
   // Update My Telemetry Card in UI
@@ -383,11 +598,15 @@ class DashboardController {
     const pAvatarEl = document.getElementById('partner-avatar-img');
     const pTopName = document.getElementById('top-bar-partner-name');
     const pTopAvatar = document.getElementById('top-bar-partner-avatar');
+    const navPartnerName = document.getElementById('navbar-partner-name');
+    const navPartnerAvatar = document.getElementById('navbar-partner-avatar');
 
     if (pNameEl) pNameEl.innerText = displayName;
     if (pAvatarEl) pAvatarEl.src = avatar;
     if (pTopName) pTopName.innerText = profile.nickname || displayName;
     if (pTopAvatar) pTopAvatar.src = avatar;
+    if (navPartnerName) navPartnerName.innerText = profile.nickname || displayName;
+    if (navPartnerAvatar) navPartnerAvatar.src = avatar;
 
     // Update Duo Modal Avatars
     const sandyAvatarModal = document.getElementById('profile-sandy-avatar');
@@ -405,7 +624,11 @@ class DashboardController {
     const pStatusBadge = document.getElementById('partner-status-badge');
 
     if (pCoordsEl) pCoordsEl.innerText = `${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)}`;
-    if (pAccuracyEl) pAccuracyEl.innerText = `±${loc.accuracy} m`;
+    
+    // High Accuracy Precision details
+    const accuracyQuality = window.locationService.evaluateAccuracyQuality(loc.accuracy);
+    if (pAccuracyEl) pAccuracyEl.innerText = `${accuracyQuality.text} (${accuracyQuality.label})`;
+
     if (pSpeedEl) {
       let state = 'Diam';
       if (loc.speed > 20) state = 'Berkendara';
@@ -444,7 +667,7 @@ class DashboardController {
     if (mobPCoords) mobPCoords.innerText = `${loc.latitude.toFixed(5)}, ${loc.longitude.toFixed(5)}`;
     if (mobPSpeed) mobPSpeed.innerText = `${loc.speed} km/h`;
     if (mobPBattery) mobPBattery.innerText = loc.batteryLevel !== null ? `${loc.batteryLevel}% ${loc.isCharging ? '⚡' : ''}` : '--';
-    if (mobPAccuracy) mobPAccuracy.innerText = `±${loc.accuracy} m`;
+    if (mobPAccuracy) mobPAccuracy.innerText = `${accuracyQuality.text}`;
     if (mobPStatusBadge) {
       mobPStatusBadge.className = `status-badge ${freshness.status}`;
       mobPStatusBadge.innerHTML = `<span class="status-dot"></span> ${freshness.text}`;
@@ -484,6 +707,9 @@ class DashboardController {
 
     const topDistPill = document.getElementById('top-bar-distance-text');
     if (topDistPill) topDistPill.innerText = `${formatted} dari Anda`;
+
+    const navDistPill = document.getElementById('navbar-partner-distance');
+    if (navDistPill) navDistPill.innerText = `${formatted}`;
   }
 
   // Geofence & Proximity Arrival Alert
@@ -669,43 +895,110 @@ class DashboardController {
 
     // 12. Couple Profile & Anniversary Modal Handlers
     const profileModal = document.getElementById('couple-profile-modal');
-    document.getElementById('btn-open-couple-profile')?.addEventListener('click', () => {
-      profileModal?.classList.add('active');
-    });
-    document.getElementById('btn-close-couple-profile')?.addEventListener('click', () => {
-      profileModal?.classList.remove('active');
-    });
+    const openProfile = () => profileModal?.classList.add('active');
+    const closeProfile = () => profileModal?.classList.remove('active');
 
-    // 13. Top Bar Partner Pill Click -> Focus Partner
+    document.getElementById('btn-open-couple-profile')?.addEventListener('click', openProfile);
+    document.getElementById('btn-navbar-couple-profile')?.addEventListener('click', openProfile);
+    document.getElementById('btn-navbar-profile')?.addEventListener('click', openProfile);
+    document.getElementById('btn-close-couple-profile')?.addEventListener('click', closeProfile);
+
+    // 13. Top Bar / Navbar Partner Pill Click -> Focus Partner on Map
     document.getElementById('top-bar-partner-container')?.addEventListener('click', () => {
       window.mapEngine.locatePartner();
     });
+    document.getElementById('btn-navbar-partner')?.addEventListener('click', () => {
+      window.mapEngine.locatePartner();
+    });
 
-    // 14. Force Sync GPS Button
+    // 14. Love Ping / Romantic Notification Modal Handlers
+    const lovePingModal = document.getElementById('love-ping-modal');
+    document.getElementById('btn-navbar-love-ping')?.addEventListener('click', () => {
+      lovePingModal?.classList.add('active');
+    });
+    document.getElementById('btn-close-love-ping')?.addEventListener('click', () => {
+      lovePingModal?.classList.remove('active');
+    });
+
+    // Preset quick ping buttons
+    document.querySelectorAll('.btn-quick-ping').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = btn.getAttribute('data-ping') || btn.innerText;
+        this.sendLovePing(text);
+      });
+    });
+
+    // Custom love ping message send button
+    document.getElementById('btn-send-custom-ping')?.addEventListener('click', () => {
+      const input = document.getElementById('custom-ping-input');
+      const text = input?.value?.trim();
+      if (text) {
+        this.sendLovePing(text);
+        if (input) input.value = '';
+      } else {
+        window.notifier?.showToast("Love Ping", "Silakan ketik pesan singkat terlebih dahulu.", "info");
+      }
+    });
+
+    // 15. Force Sync GPS Button
     document.getElementById('btn-force-sync')?.addEventListener('click', () => {
       const syncBtn = document.getElementById('btn-force-sync');
       if (syncBtn) syncBtn.classList.add('animate-spin');
       
-      if (this.myLocation && this.coupleId && this.user) {
-        window.locationService.broadcastLocation(this.coupleId, this.user.uid);
-      }
+      // Hardware GPS query
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          window.locationService.handleRawPosition(pos, (locData) => {
+            this.myLocation = locData;
+            window.mapEngine.updateMyMarker(locData, this.userProfile);
+            if (this.coupleId && this.user) {
+              window.locationService.broadcastLocation(this.coupleId, this.user.uid, locData);
+            }
+            this.recalculateCoupleDistance();
+          });
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      );
       
-      // Also try to query Firebase partner location immediately
-      if (window.firebaseManager?.database && this.coupleId && this.partnerUid) {
-        window.firebaseManager.database.ref(`couples/${this.coupleId}/locations/${this.partnerUid}`).once('value')
+      // Also query Firebase partner location immediately
+      if (window.firebaseManager?.database && this.coupleId) {
+        const db = window.firebaseManager.database;
+        db.ref(`couples/${this.coupleId}`).once('value')
           .then(snap => {
-            const pLoc = snap.val();
-            if (pLoc && typeof pLoc.latitude === 'number' && typeof pLoc.longitude === 'number' && (pLoc.latitude !== 0 || pLoc.longitude !== 0)) {
-              this.handlePartnerLocationUpdate(pLoc);
+            const data = snap.val();
+            if (data) {
+              if (this.partnerUid && data.locations && data.locations[this.partnerUid]) {
+                this.handlePartnerLocationUpdate(data.locations[this.partnerUid]);
+              } else if (data.locations) {
+                for (const [key, loc] of Object.entries(data.locations)) {
+                  if (key !== this.user?.uid && this.isValidLocation(loc)) {
+                    this.partnerUid = key;
+                    this.handlePartnerLocationUpdate(loc);
+                    break;
+                  }
+                }
+              }
             }
           })
           .catch(() => {});
+
+        // Send silent location request ping to wake partner's device
+        try {
+          db.ref(`couples/${this.coupleId}/pings`).push({
+            senderUid: this.user?.uid,
+            senderName: this.userProfile?.displayName || 'Sandy',
+            message: 'Meminta pembaruan lokasi GPS...',
+            type: 'location_request',
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+          });
+        } catch (pErr) {}
       }
 
-      window.notifier.showToast("Sinkronisasi GPS", "Mengirim koordinat terkini ke pasangan...", "success", 2000);
+      window.notifier.showToast("Sinkronisasi GPS Terkini 📍", "Mengambil sinyal satelit & meminta pembaruan dari pasangan...", "success", 2500);
       setTimeout(() => {
         if (syncBtn) syncBtn.classList.remove('animate-spin');
-      }, 1200);
+      }, 1500);
     });
   }
 }

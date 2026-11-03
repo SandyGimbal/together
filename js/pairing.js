@@ -27,9 +27,12 @@ class PairingService {
     const code = this.generatePairingCode();
     const coupleId = 'couple_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
 
+    const isSandy = (activeUser.displayName?.toLowerCase().includes('sandy') || activeUser.email?.toLowerCase().includes('sandy'));
+    const defaultName = isSandy ? 'Sandy' : (activeUser.displayName || 'Sandy');
+
     const activeProfile = profile || window.authService?.userProfile || {
-      displayName: activeUser.displayName || activeUser.email?.split('@')[0] || 'Pasangan A',
-      avatar: activeUser.photoURL || 'assets/avatars/avatar-1.svg',
+      displayName: defaultName,
+      avatar: activeUser.photoURL || (isSandy ? 'assets/avatars/avatar-1.svg' : 'assets/avatars/avatar-2.svg'),
       email: activeUser.email || ''
     };
 
@@ -131,9 +134,13 @@ class PairingService {
       throw new Error("Format kode pairing tidak valid.");
     }
 
+    const isDhea = (!activeUser.displayName?.toLowerCase().includes('sandy') && !activeUser.email?.toLowerCase().includes('sandy'));
+    const defaultPartnerBName = isDhea ? 'Dhea Sri Dewi' : (activeUser.displayName || 'Pasangan');
+    const defaultPartnerBAvatar = isDhea ? 'assets/avatars/avatar-2.svg' : 'assets/avatars/avatar-1.svg';
+
     const activeProfile = profile || window.authService?.userProfile || {
-      displayName: activeUser.displayName || activeUser.email?.split('@')[0] || 'Pasangan B',
-      avatar: activeUser.photoURL || 'assets/avatars/avatar-2.svg',
+      displayName: activeUser.displayName || defaultPartnerBName,
+      avatar: activeUser.photoURL || defaultPartnerBAvatar,
       email: activeUser.email || ''
     };
 
@@ -166,14 +173,21 @@ class PairingService {
       // Add User B to couple members
       const memberB = {
         uid: user.uid,
-        displayName: profile?.displayName || user.displayName || 'Pasangan B',
-        avatar: profile?.avatar || 'assets/avatars/avatar-2.svg',
-        email: user.email,
+        displayName: activeProfile.displayName || defaultPartnerBName,
+        avatar: activeProfile.avatar || defaultPartnerBAvatar,
+        email: user.email || '',
         joinedAt: firebase.database.ServerValue.TIMESTAMP,
         online: true
       };
 
-      const locB = {
+      // Check if User B has an existing lastLocation saved in users/${user.uid}/lastLocation
+      let knownLoc = null;
+      try {
+        const uSnap = await db.ref(`users/${user.uid}/lastLocation`).once('value');
+        knownLoc = uSnap.val();
+      } catch (e) {}
+
+      const locB = (knownLoc && knownLoc.latitude) ? knownLoc : {
         latitude: 0,
         longitude: 0,
         accuracy: 0,

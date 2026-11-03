@@ -1028,4 +1028,231 @@ a:hover {
   animation: pulseGlow 3s infinite;
 }
 
+/* ==========================================================================
+   Dashboard Top Navbar & Love Ping Notification System
+   ========================================================================== */
+.dashboard-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 62px;
+  background: rgba(8, 14, 26, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  z-index: 2000;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+}
+
+.dashboard-layout {
+  padding-top: 62px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+}
+
+.navbar-partner-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(16, 26, 44, 0.85);
+  border: 1px solid rgba(255, 117, 184, 0.35);
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+}
+.navbar-partner-pill:hover {
+  border-color: var(--romantic-pink);
+  box-shadow: 0 0 16px rgba(255, 117, 184, 0.4);
+  transform: translateY(-1px);
+}
+
+.navbar-partner-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--romantic-pink);
+  object-fit: cover;
+}
+
+.navbar-partner-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.navbar-partner-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--pure-white);
+  line-height: 1.1;
+}
+
+.navbar-online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+}
+.navbar-online-dot.idle {
+  background: #F59E0B;
+  box-shadow: 0 0 8px #F59E0B;
+}
+
+.navbar-partner-distance {
+  font-size: 0.72rem;
+  color: var(--cyan-accent);
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+/* Center Romantic Couple Pill */
+.navbar-couple-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: linear-gradient(135deg, rgba(255, 117, 184, 0.16) 0%, rgba(56, 135, 255, 0.16) 100%);
+  border: 1px solid rgba(255, 117, 184, 0.45);
+  border-radius: var(--radius-full);
+  padding: 0.45rem 1.15rem;
+  cursor: pointer;
+  box-shadow: 0 0 18px rgba(255, 117, 184, 0.25);
+  transition: all var(--transition-smooth);
+  color: #fff;
+}
+.navbar-couple-pill:hover {
+  border-color: var(--romantic-pink);
+  box-shadow: 0 0 24px rgba(255, 117, 184, 0.5);
+  transform: translateY(-1px);
+}
+.navbar-heart-pulse {
+  width: 17px;
+  height: 17px;
+  fill: var(--romantic-pink);
+  color: var(--romantic-pink);
+  animation: pulseGlow 2s infinite;
+}
+.navbar-couple-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--pure-white);
+  letter-spacing: -0.01em;
+}
+.navbar-anniversary-badge {
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--cyan-accent);
+  background: rgba(8, 14, 26, 0.6);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(54, 217, 255, 0.3);
+}
+
+/* Navbar Action Buttons */
+.btn-love-ping {
+  background: linear-gradient(135deg, #FF75B8 0%, #9277FF 100%) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  border: none !important;
+  border-radius: var(--radius-full) !important;
+  padding: 0.45rem 1rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  box-shadow: 0 0 20px rgba(255, 117, 184, 0.45) !important;
+  transition: all var(--transition-smooth) !important;
+  cursor: pointer;
+}
+.btn-love-ping:hover {
+  box-shadow: 0 0 28px rgba(255, 117, 184, 0.7) !important;
+  transform: translateY(-1px) scale(1.02);
+}
+
+.btn-navbar-action {
+  background: rgba(16, 26, 44, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--pure-white);
+  padding: 0.45rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-navbar-action:hover {
+  background: rgba(30, 48, 80, 0.9);
+  border-color: var(--cyan-accent);
+  color: var(--cyan-accent);
+}
+.btn-navbar-action.btn-icon-only {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  justify-content: center;
+}
+
+.btn-navbar-pwa {
+  background: linear-gradient(135deg, rgba(56, 135, 255, 0.25) 0%, rgba(54, 217, 255, 0.25) 100%);
+  border: 1px solid var(--cyan-accent);
+  border-radius: var(--radius-full);
+  color: var(--cyan-accent);
+  padding: 0.45rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-navbar-pwa:hover {
+  background: rgba(54, 217, 255, 0.35);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(54, 217, 255, 0.5);
+}
+
+/* Love Ping Modal Grid */
+.quick-pings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+.btn-quick-ping {
+  background: rgba(16, 26, 44, 0.7);
+  border: 1px solid rgba(255, 117, 184, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.85rem;
+  color: var(--pure-white);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-smooth);
+}
+.btn-quick-ping:hover {
+  background: rgba(255, 117, 184, 0.16);
+  border-color: var(--romantic-pink);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 117, 184, 0.3);
+}
+
 

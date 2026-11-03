@@ -42,16 +42,18 @@ class LocationService {
   }
 
   // Start watching GPS position
+  // Start watching GPS position with Ultra-High Accuracy
   startTracking(onPositionUpdate, onError) {
     if (!('geolocation' in navigator)) {
       if (onError) onError(new Error("Perangkat atau browser Anda tidak mendukung Geolocation GPS API."));
       return false;
     }
 
+    // Hardware GPS options: maximumAge: 0 forces direct hardware satellite reads
     const options = {
       enableHighAccuracy: true,
-      timeout: 12000,
-      maximumAge: 4000
+      timeout: 15000,
+      maximumAge: 0
     };
 
     // Immediate initial fix
@@ -59,9 +61,8 @@ class LocationService {
       (pos) => this.handleRawPosition(pos, onPositionUpdate),
       (err) => {
         console.warn("Initial GPS fix warning:", err);
-        // Fallback default coordinates (e.g. Jakarta Pusat / Monas) if user denies during initial test
-        if (err.code === 1) { // PERMISSION_DENIED
-          if (onError) onError(err);
+        if (err.code === 1 && onError) {
+          onError(err);
         }
       },
       options
@@ -71,19 +72,44 @@ class LocationService {
     this.watchId = navigator.geolocation.watchPosition(
       (pos) => this.handleRawPosition(pos, onPositionUpdate),
       (err) => {
-        console.warn("GPS watch update error:", err);
+        console.warn("GPS watch update notice:", err);
         if (onError) onError(err);
       },
       options
     );
 
-    // Recurring continuous heartbeat every 5s so partner always receives live coordinates
+    // Active Hardware Polling every 8s: keeps mobile GPS chip alive & prevents sleep
+    if (this.activePollingInterval) clearInterval(this.activePollingInterval);
+    this.activePollingInterval = setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => this.handleRawPosition(pos, onPositionUpdate),
+        () => {},
+        options
+      );
+    }, 8000);
+
+    // Continuous heartbeat every 4s: guarantees partner receives live telemetry
     if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
     this.heartbeatInterval = setInterval(() => {
       if (this.currentPosition && onPositionUpdate) {
         onPositionUpdate(this.currentPosition, true);
       }
-    }, 5000);
+    }, 4000);
+
+    // Mobile Foreground Wakeup: immediately refresh GPS when returning from WhatsApp or another app
+    if (!this.visibilityBound) {
+      this.visibilityBound = true;
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          console.log("📱 App returned to foreground, forcing immediate GPS fix...");
+          navigator.geolocation.getCurrentPosition(
+            (pos) => this.handleRawPosition(pos, onPositionUpdate),
+            () => {},
+            options
+          );
+        }
+      });
+    }
 
     return true;
   }
@@ -95,7 +121,7 @@ class LocationService {
 
     const lat = Number(coords.latitude);
     const lng = Number(coords.longitude);
-    if (isNaN(lat) || isNaN(lng)) return;
+    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return;
 
     const locationData = {
       latitude: lat,
@@ -112,7 +138,7 @@ class LocationService {
 
     this.currentPosition = locationData;
 
-    // Check throttling
+    // Evaluate broadcast necessity
     const shouldSend = this.shouldBroadcastUpdate(locationData, now);
 
     if (callback) {
@@ -137,29 +163,36 @@ class LocationService {
       newPos.longitude
     );
 
-    // If moving fast (> 25 km/h driving), update every 3s or every 15m
+    // If moving fast (> 25 km/h driving), update every 2.5s or every 10m
     if (newPos.speed > 25) {
-      return timeDiff > 3000 || distanceMoved > 15;
+      return timeDiff > 2500 || distanceMoved > 10;
     }
 
-    // Normal pedestrian/stationary: update every 5 seconds OR every 4 meters, or at least every 8s heartbeat
-    return (timeDiff >= 4000 && distanceMoved >= 3) || timeDiff >= 8000;
+    // Normal pedestrian/stationary: update every 4 seconds OR every 2.5 meters, or at least every 6s heartbeat
+    return (timeDiff >= 3500 && distanceMoved >= 2.5) || timeDiff >= 6000;
   }
 
-  // Push location to Firebase
-  async broadcastLocation(coupleId, uid) {
-    if (!coupleId || !uid || !this.currentPosition) return;
+  // Push location to Firebase with triple redundancy (locations, members, users)
+  async broadcastLocation(coupleId, uid, directLocation = null) {
+    if (!coupleId || !uid) return;
     if (!this.sharingEnabled) return;
 
+    const locSource = directLocation || this.currentPosition;
+    if (!locSource) return;
+
+    const lat = parseFloat(locSource.latitude);
+    const lng = parseFloat(locSource.longitude);
+    if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return;
+
     const payload = {
-      latitude: Number(this.currentPosition.latitude) || 0,
-      longitude: Number(this.currentPosition.longitude) || 0,
-      accuracy: Math.round(Number(this.currentPosition.accuracy) || 10),
-      heading: Math.round(Number(this.currentPosition.heading) || 0),
-      speed: Math.round(Number(this.currentPosition.speed) || 0),
-      timestamp: Number(this.currentPosition.timestamp) || Date.now(),
-      batteryLevel: Number(this.currentPosition.batteryLevel) || 100,
-      isCharging: Boolean(this.currentPosition.isCharging),
+      latitude: lat,
+      longitude: lng,
+      accuracy: Math.round(Number(locSource.accuracy) || 10),
+      heading: Math.round(Number(locSource.heading) || 0),
+      speed: Math.round(Number(locSource.speed) || 0),
+      timestamp: Number(locSource.timestamp) || Date.now(),
+      batteryLevel: Number(locSource.batteryLevel) || 100,
+      isCharging: Boolean(locSource.isCharging),
       sharingEnabled: Boolean(this.sharingEnabled),
       lastUpdated: firebase.database.ServerValue.TIMESTAMP
     };
@@ -167,17 +200,20 @@ class LocationService {
     if (window.firebaseManager && window.firebaseManager.isConfigured && window.firebaseManager.database) {
       try {
         const db = window.firebaseManager.database;
-        // Primary location write
-        await db.ref(`couples/${coupleId}/locations/${uid}`).set(payload);
+        
+        // Atomic multi-path update guarantees Sandy & Dhea always see each other
+        const updates = {};
+        updates[`couples/${coupleId}/locations/${uid}`] = payload;
+        updates[`couples/${coupleId}/members/${uid}/lastLocation`] = payload;
+        updates[`couples/${coupleId}/members/${uid}/online`] = true;
+        updates[`couples/${coupleId}/members/${uid}/lastSeen`] = firebase.database.ServerValue.TIMESTAMP;
+        updates[`users/${uid}/lastLocation`] = payload;
 
-        // Also update member online status and ping
-        db.ref(`couples/${coupleId}/members/${uid}/online`).set(true).catch(() => {});
-        db.ref(`couples/${coupleId}/members/${uid}/lastSeen`).set(firebase.database.ServerValue.TIMESTAMP).catch(() => {});
+        await db.ref().update(updates);
 
-        // Optional breadcrumb history (non-blocking)
+        // Optional non-blocking breadcrumb trail
         try {
-          const historyRef = db.ref(`couples/${coupleId}/history/${uid}`).push();
-          historyRef.set({
+          db.ref(`couples/${coupleId}/history/${uid}`).push({
             lat: payload.latitude,
             lng: payload.longitude,
             timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -204,6 +240,25 @@ class LocationService {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
+    }
+    if (this.activePollingInterval) {
+      clearInterval(this.activePollingInterval);
+      this.activePollingInterval = null;
+    }
+  }
+
+  // Evaluate Accuracy Quality Badge
+  evaluateAccuracyQuality(meters) {
+    if (!meters && meters !== 0) return { text: '±-- m', class: 'status-badge offline', label: 'Belum Ada Sinyal' };
+    const num = Math.round(meters);
+    if (num <= 15) {
+      return { text: `±${num} m`, class: 'status-badge live', label: 'Sangat Akurat (GPS Satelit)' };
+    } else if (num <= 35) {
+      return { text: `±${num} m`, class: 'status-badge live', label: 'Akurat (GPS)' };
+    } else if (num <= 70) {
+      return { text: `±${num} m`, class: 'status-badge recent', label: 'Sedang (Wi-Fi/GPS)' };
+    } else {
+      return { text: `±${num} m`, class: 'status-badge idle', label: 'Perkiraan Seluler' };
     }
   }
 

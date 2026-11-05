@@ -174,7 +174,30 @@ class AppMaster {
       });
     });
 
-    // Handle install button clicks
+    // Handle install button clicks & PWA modal
+    const pwaModal = document.getElementById('pwa-install-modal');
+    const closePwaModal = () => pwaModal?.classList.remove('active');
+    document.getElementById('btn-close-pwa-modal')?.addEventListener('click', closePwaModal);
+    document.getElementById('btn-dismiss-pwa-modal')?.addEventListener('click', closePwaModal);
+
+    const triggerNativeBtn = document.getElementById('btn-trigger-native-install');
+    triggerNativeBtn?.addEventListener('click', async () => {
+      if (window.deferredPwaPrompt) {
+        window.deferredPwaPrompt.prompt();
+        const { outcome } = await window.deferredPwaPrompt.userChoice;
+        console.log(`User response to PWA install: ${outcome}`);
+        window.deferredPwaPrompt = null;
+        closePwaModal();
+      } else {
+        window.notifier?.showToast(
+          "Gunakan Menu Browser",
+          "Ketuk Titik Tiga (⋮) di atas & pilih 'Tambahkan ke Layar Utama'.",
+          "info",
+          4000
+        );
+      }
+    });
+
     document.addEventListener('click', async (e) => {
       const btn = e.target.closest('.btn-install-pwa');
       if (!btn) return;
@@ -185,6 +208,8 @@ class AppMaster {
         console.log(`User response to PWA install: ${outcome}`);
         window.deferredPwaPrompt = null;
         btn.style.display = 'none';
+      } else if (pwaModal) {
+        pwaModal.classList.add('active');
       } else {
         // Fallback instructions for Brave / Chrome
         window.notifier?.showToast(

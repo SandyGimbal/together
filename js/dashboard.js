@@ -129,6 +129,98 @@ class DashboardController {
     );
   }
 
+  // Reverse Geocoding with OSM Nominatim & Local Cache
+  async reverseGeocode(lat, lng) {
+    if (!lat || !lng) return 'Koordinat belum tersedia';
+    const cacheKey = `GEO_${lat.toFixed(3)}_${lng.toFixed(3)}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`, {
+        headers: { 'Accept-Language': 'id,en' }
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const addr = data.address || {};
+        const village = addr.village || addr.suburb || addr.neighbourhood || addr.quarter || '';
+        const district = addr.county || addr.city_district || addr.municipality || '';
+        const city = addr.city || addr.town || addr.regency || addr.state_district || '';
+        const state = addr.state || '';
+        
+        let label = [village, district, city, state].filter(Boolean).slice(0, 2).join(', ');
+        if (!label) label = data.display_name ? data.display_name.split(',').slice(0, 2).join(',') : `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        sessionStorage.setItem(cacheKey, label);
+        return label;
+      }
+    } catch (e) {
+      console.warn("Reverse geocode fetch skipped:", e.message);
+    }
+    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
+
+  // Google Maps Style Movement State (Speed Based)
+  getMovementState(speed) {
+    const s = Number(speed) || 0;
+    if (s <= 2) {
+      return { text: 'Diam', class: 'idle' };
+    } else if (s <= 18) {
+      return { text: `Berjalan (${s} km/j)`, class: 'walking' };
+    } else {
+      return { text: `Berkendara (${s} km/j)`, class: 'driving' };
+    }
+  }
+
+  // Toggle History Breadcrumb Trail
+  async toggleBreadcrumbTrail() {
+    if (!this.coupleId || !this.partnerUid) {
+      window.notifier?.showToast("Jejak Riwayat", "Data pasangan belum tersedia.", "warning");
+      return;
+    }
+
+    if (this.showingHistoryTrail) {
+      this.showingHistoryTrail = false;
+      if (window.mapEngine.historyPolyline) {
+        window.mapEngine.map.removeLayer(window.mapEngine.historyPolyline);
+        window.mapEngine.historyPolyline = null;
+      }
+      window.notifier?.showToast("Jejak Riwayat", "Jejak riwayat perjalanan disembunyikan.", "info");
+      return;
+    }
+
+    window.notifier?.showToast("Mengambil Riwayat...", "Mengambil rute perjalanan pasangan...", "info", 2000);
+    try {
+      const db = window.firebaseManager?.database;
+      if (!db) throw new Error("Database offline");
+
+      const snap = await db.ref(`couples/${this.coupleId}/history/${this.partnerUid}`)
+        .limitToLast(60)
+        .once('value');
+      
+      const historyData = snap.val();
+      if (!historyData) {
+        window.notifier?.showToast("Belum Ada Riwayat", "Pasangan baru saja terhubung atau belum berpindah tempat.", "info", 3000);
+        return;
+      }
+
+      const points = Object.values(historyData)
+        .filter(p => p && p.lat && p.lng)
+        .map(p => ({ lat: p.lat, lng: p.lng }));
+
+      if (points.length < 2) {
+        window.notifier?.showToast("Jejak Terlalu Pendek", "Belum cukup titik koordinat untuk menggambar garis lintasan.", "info", 3000);
+        return;
+      }
+
+      window.mapEngine.renderBreadcrumbTrail(points);
+      this.showingHistoryTrail = true;
+      window.notifier?.showToast("Jejak Riwayat Aktif 📍", `Menampilkan rute ${points.length} titik perjalanan pasangan.`, "success", 4000);
+    } catch (e) {
+      console.warn("History trail fetch error:", e);
+      window.notifier?.showToast("Gagal Memuat Riwayat", e.message, "error");
+    }
+  }
+
   // Validation helper for GPS coordinates
   isValidLocation(loc) {
     if (!loc) return false;
@@ -156,6 +248,18 @@ class DashboardController {
           this.partnerProfile = data.members[this.partnerUid];
           this.ensurePartnerNames();
           this.updatePartnerProfileUI(this.partnerProfile);
+
+          // Direct User Node Listener (Path Z: High Resilience)
+          if (!this.isListeningToPartnerDirectUser) {
+            this.isListeningToPartnerDirectUser = true;
+            db.ref(`users/${this.partnerUid}/lastLocation`).on('value', (uSnap) => {
+              const directLoc = uSnap.val();
+              if (this.isValidLocation(directLoc)) {
+                this.ensurePartnerNames();
+                this.handlePartnerLocationUpdate(directLoc);
+              }
+            });
+          }
         }
       }
 
@@ -163,6 +267,19 @@ class DashboardController {
       if (!this.partnerUid && data.locations) {
         const locKeys = Object.keys(data.locations);
         this.partnerUid = locKeys.find(key => key !== this.user.uid);
+      }
+
+      // Check cached partner location from localStorage to eliminate initial blank
+      if (!this.partnerLocation) {
+        const cachedPartner = localStorage.getItem('TOGETHER_LAST_PARTNER_LOC');
+        if (cachedPartner) {
+          try {
+            const parsed = JSON.parse(cachedPartner);
+            if (this.isValidLocation(parsed)) {
+              this.handlePartnerLocationUpdate(parsed);
+            }
+          } catch (e) {}
+        }
       }
 
       // 3. Multi-path partner location extraction (Sandy & Dhea synchronization)
@@ -236,6 +353,38 @@ class DashboardController {
 
     // 6. Initialize Love Ping / Notification Listener
     this.initLovePingSystem();
+
+    // Auto-request initial partner GPS fix via silent ping
+    setTimeout(() => {
+      if (this.coupleId && this.user) {
+        try {
+          db.ref(`couples/${this.coupleId}/pings`).push({
+            senderUid: this.user.uid,
+            senderName: this.userProfile?.displayName || 'Sandy',
+            message: 'Meminta pembaruan lokasi GPS...',
+            type: 'location_request',
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+          });
+        } catch (pErr) {}
+      }
+    }, 1500);
+
+    // Periodic silent partner GPS ping until partner coordinates arrive
+    if (!this.partnerLocReqInterval) {
+      this.partnerLocReqInterval = setInterval(() => {
+        if (!this.partnerLocation && this.coupleId && this.user) {
+          try {
+            db.ref(`couples/${this.coupleId}/pings`).push({
+              senderUid: this.user.uid,
+              senderName: this.userProfile?.displayName || 'Sandy',
+              message: 'Meminta pembaruan lokasi GPS...',
+              type: 'location_request',
+              timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+          } catch (e) {}
+        }
+      }, 12000);
+    }
 
     // Monitor Firebase Connection status
     const connectedRef = db.ref('.info/connected');
@@ -629,12 +778,25 @@ class DashboardController {
     const accuracyQuality = window.locationService.evaluateAccuracyQuality(loc.accuracy);
     if (pAccuracyEl) pAccuracyEl.innerText = `${accuracyQuality.text} (${accuracyQuality.label})`;
 
-    if (pSpeedEl) {
-      let state = 'Diam';
-      if (loc.speed > 20) state = 'Berkendara';
-      else if (loc.speed > 3) state = 'Berjalan';
-      pSpeedEl.innerText = `${loc.speed} km/h (${state})`;
+    // Google Maps Style Live Address (Reverse Geocoding)
+    const addressEl = document.getElementById('partner-address-text');
+    if (addressEl) {
+      this.reverseGeocode(loc.latitude, loc.longitude).then(addr => {
+        if (addressEl) addressEl.innerText = addr;
+      });
     }
+
+    // Google Maps Style Movement State
+    const moveInfo = this.getMovementState(loc.speed);
+    if (pSpeedEl) {
+      pSpeedEl.innerText = `${loc.speed} km/h (${moveInfo.text})`;
+    }
+    const movementBadge = document.getElementById('partner-movement-badge');
+    if (movementBadge) {
+      movementBadge.className = `movement-badge ${moveInfo.class}`;
+      movementBadge.innerText = moveInfo.text;
+    }
+
     if (pBatteryEl) {
       pBatteryEl.innerText = loc.batteryLevel !== null ? `${loc.batteryLevel}% ${loc.isCharging ? '⚡' : ''}` : '--';
     }
@@ -684,17 +846,28 @@ class DashboardController {
 
   // Distance Calculation & Heading Bearing
   recalculateCoupleDistance() {
-    if (!this.myLocation || !this.partnerLocation) return;
+    const myLat = this.myLocation?.latitude ?? this.userProfile?.lastLocation?.latitude;
+    const myLng = this.myLocation?.longitude ?? this.userProfile?.lastLocation?.longitude;
+    const partnerLat = this.partnerLocation?.latitude ?? this.partnerProfile?.lastLocation?.latitude;
+    const partnerLng = this.partnerLocation?.longitude ?? this.partnerProfile?.lastLocation?.longitude;
+
+    if (!myLat || !myLng || !partnerLat || !partnerLng) {
+      if (this.partnerLocation && (!myLat || !myLng)) {
+        const topDistPill = document.getElementById('top-bar-distance-text');
+        if (topDistPill) topDistPill.innerText = `Menunggu GPS Anda...`;
+      }
+      return;
+    }
 
     const distanceMeters = window.locationService.calculateDistance(
-      this.myLocation.latitude, this.myLocation.longitude,
-      this.partnerLocation.latitude, this.partnerLocation.longitude
+      myLat, myLng,
+      partnerLat, partnerLng
     );
     const formatted = window.locationService.formatDistance(distanceMeters);
 
     const bearing = window.locationService.calculateBearing(
-      this.myLocation.latitude, this.myLocation.longitude,
-      this.partnerLocation.latitude, this.partnerLocation.longitude
+      myLat, myLng,
+      partnerLat, partnerLng
     );
     const direction = window.locationService.bearingToDirection(bearing);
 
@@ -839,19 +1012,54 @@ class DashboardController {
     handle?.addEventListener('click', toggleSheet);
     previewBar?.addEventListener('click', toggleSheet);
 
-    // 7. Sidebar Toggle for Tablet / Mobile
+    // 7. Sidebar Drawer Toggle & Action Navigation (Desktop & Mobile)
     const sidebarToggleBtn = document.getElementById('btn-toggle-sidebar');
     const sidebar = document.getElementById('sidebar-panel');
     const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    const closeSidebarBtn = document.getElementById('btn-close-sidebar');
+
+    const closeSidebarDrawer = () => {
+      sidebar?.classList.remove('open');
+      sidebarBackdrop?.classList.remove('active');
+    };
 
     sidebarToggleBtn?.addEventListener('click', () => {
       sidebar?.classList.toggle('open');
       sidebarBackdrop?.classList.toggle('active');
     });
 
-    sidebarBackdrop?.addEventListener('click', () => {
-      sidebar?.classList.remove('open');
-      sidebarBackdrop?.classList.remove('active');
+    closeSidebarBtn?.addEventListener('click', closeSidebarDrawer);
+    sidebarBackdrop?.addEventListener('click', closeSidebarDrawer);
+
+    // Sidebar Drawer Quick Actions
+    document.getElementById('btn-sidebar-love-ping')?.addEventListener('click', () => {
+      document.getElementById('love-ping-modal')?.classList.add('active');
+      closeSidebarDrawer();
+    });
+
+    document.getElementById('btn-sidebar-locate-partner')?.addEventListener('click', () => {
+      window.mapEngine.locatePartner();
+      closeSidebarDrawer();
+    });
+
+    document.getElementById('btn-sidebar-locate-me')?.addEventListener('click', () => {
+      window.mapEngine.locateMe();
+      closeSidebarDrawer();
+    });
+
+    document.getElementById('btn-sidebar-fit-both')?.addEventListener('click', () => {
+      window.mapEngine.fitBoth();
+      closeSidebarDrawer();
+    });
+
+    document.getElementById('btn-sidebar-history-trail')?.addEventListener('click', async () => {
+      closeSidebarDrawer();
+      await this.toggleBreadcrumbTrail();
+    });
+
+    document.getElementById('btn-sidebar-sync-gps')?.addEventListener('click', () => {
+      closeSidebarDrawer();
+      document.getElementById('btn-force-sync')?.click();
     });
 
     // 8. Notification Permission Prompt
@@ -978,6 +1186,15 @@ class DashboardController {
                     break;
                   }
                 }
+              }
+
+              if (this.partnerUid) {
+                db.ref(`users/${this.partnerUid}/lastLocation`).once('value').then(uSnap => {
+                  const uLoc = uSnap.val();
+                  if (this.isValidLocation(uLoc)) {
+                    this.handlePartnerLocationUpdate(uLoc);
+                  }
+                }).catch(() => {});
               }
             }
           })

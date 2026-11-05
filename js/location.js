@@ -209,7 +209,14 @@ class LocationService {
         updates[`couples/${coupleId}/members/${uid}/lastSeen`] = firebase.database.ServerValue.TIMESTAMP;
         updates[`users/${uid}/lastLocation`] = payload;
 
-        await db.ref().update(updates);
+        try {
+          await db.ref().update(updates);
+        } catch (upErr) {
+          console.warn("Multi-path update fallback to individual sets:", upErr.message);
+          db.ref(`couples/${coupleId}/locations/${uid}`).set(payload).catch(() => {});
+          db.ref(`couples/${coupleId}/members/${uid}/lastLocation`).set(payload).catch(() => {});
+          db.ref(`users/${uid}/lastLocation`).set(payload).catch(() => {});
+        }
 
         // Optional non-blocking breadcrumb trail
         try {

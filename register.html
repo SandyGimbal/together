@@ -35,7 +35,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2.5rem 1.25rem;
+      padding: 5.2rem 1.25rem 2.5rem;
       position: relative;
     }
     .auth-card-container {
@@ -66,6 +66,28 @@
   </style>
 </head>
 <body>
+  <!-- Auth Top Navigation Bar (Responsive Desktop & Mobile) -->
+  <nav class="auth-navbar">
+    <a href="index.html" class="navbar-brand">
+      <img src="assets/icons/logo.svg" alt="TOGETHER" class="brand-logo-img">
+      <span class="brand-name"><span class="gradient-blue-text">TO</span><span class="gradient-pink-text">GETHER</span></span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 0.65rem;">
+      <a href="index.html" class="btn-ghost" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full); text-decoration: none; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 0.35rem;">
+        <i data-lucide="home" style="width: 15px; height: 15px;"></i>
+        <span>Beranda</span>
+      </a>
+      <a href="login.html" class="btn-ghost" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: var(--radius-full); text-decoration: none; color: var(--pure-white); display: inline-flex; align-items: center; gap: 0.35rem;">
+        <i data-lucide="log-in" style="width: 15px; height: 15px;"></i>
+        <span>Masuk</span>
+      </a>
+      <button type="button" class="btn-install-pwa" id="btn-install-pwa-nav" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: var(--radius-full); border: 1px solid var(--cyan-accent); color: var(--cyan-accent); background: rgba(54, 217, 255, 0.1); display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+        <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+        <span>Pasang App</span>
+      </button>
+    </div>
+  </nav>
+
   <div class="space-background"></div>
   <canvas id="starfield-canvas" class="starfield-canvas"></canvas>
   <div class="ambient-orb orb-blue"></div>

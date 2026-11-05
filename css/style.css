@@ -1255,4 +1255,141 @@ a:hover {
   box-shadow: 0 4px 15px rgba(255, 117, 184, 0.3);
 }
 
+/* ==========================================================================
+   Luxury Sidebar Drawer & Google Maps Style Features
+   ========================================================================== */
+.sidebar-header {
+  padding: 1.15rem 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 14, 26, 0.6);
+}
+
+.sidebar-close-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.sidebar-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+/* Sidebar Rich Menu Navigation Grid */
+.sidebar-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-menu-btn {
+  background: rgba(16, 26, 44, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.65rem;
+  color: var(--pure-white);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition-smooth);
+}
+.sidebar-menu-btn:hover {
+  background: rgba(56, 135, 255, 0.18);
+  border-color: var(--cyan-accent);
+  color: var(--cyan-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(56, 135, 255, 0.25);
+}
+.sidebar-menu-btn.romantic-btn {
+  border-color: rgba(255, 117, 184, 0.3);
+  background: linear-gradient(135deg, rgba(255, 117, 184, 0.12) 0%, rgba(146, 119, 255, 0.12) 100%);
+}
+.sidebar-menu-btn.romantic-btn:hover {
+  border-color: var(--romantic-pink);
+  color: var(--romantic-pink);
+  box-shadow: 0 4px 18px rgba(255, 117, 184, 0.35);
+}
+
+/* Reverse Geocoded Address Pill (Google Maps Style) */
+.partner-address-box {
+  background: rgba(8, 14, 26, 0.75);
+  border: 1px solid rgba(56, 135, 255, 0.25);
+  border-radius: var(--radius-xs);
+  padding: 0.55rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.partner-address-text {
+  font-size: 0.8rem;
+  color: var(--pure-white);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Movement State Indicator (Diam, Berjalan, Berkendara) */
+.movement-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.movement-badge.idle {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10B981;
+}
+.movement-badge.walking {
+  background: rgba(54, 217, 255, 0.15);
+  border: 1px solid rgba(54, 217, 255, 0.35);
+  color: var(--cyan-accent);
+}
+.movement-badge.driving {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #F59E0B;
+}
+
+/* Auth Pages Top Navbar */
+.auth-navbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  z-index: 100;
+  background: rgba(8, 11, 20, 0.6);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+
 

@@ -245,9 +245,9 @@
     <!-- Tablet / Mobile Backdrop for Sidebar -->
     <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
 
-    <!-- 2. Desktop Left Sidebar Panel -->
+    <!-- 2. Desktop Left Sidebar Panel / Mobile Drawer -->
     <aside id="sidebar-panel" class="sidebar-panel">
-      <!-- Header -->
+      <!-- Header with Close Button for Mobile Drawer -->
       <div class="sidebar-header">
         <div class="brand-group">
           <a href="index.html" style="display: flex; align-items: center; gap: 0.75rem;">
@@ -255,13 +255,51 @@
             <span class="brand-name" style="font-size: 1.2rem;"><span class="gradient-blue-text">TO</span><span class="gradient-pink-text">GETHER</span></span>
           </a>
         </div>
-        <div id="connection-status-pill" class="status-badge live">
-          <span class="status-dot"></span> Cloud Sync Aktif
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div id="connection-status-pill" class="status-badge live">
+            <span class="status-dot"></span> Cloud Sync Aktif
+          </div>
+          <button id="btn-close-sidebar" class="sidebar-close-btn" title="Tutup Menu Drawer">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          </button>
         </div>
       </div>
 
-      <!-- Scrollable Telemetry List -->
+      <!-- Scrollable Telemetry List & Quick Actions -->
       <div class="sidebar-content">
+
+        <!-- Pilihan Fitur & Kontrol Cepat (Drawer Navigation Menu) -->
+        <div>
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--cyan-accent); letter-spacing: 0.06em; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+            <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i> Pilihan Menu & Fitur
+          </div>
+          <div class="sidebar-menu-grid">
+            <button type="button" class="sidebar-menu-btn romantic-btn" id="btn-sidebar-love-ping">
+              <i data-lucide="bell-ring" style="width: 18px; height: 18px; color: var(--romantic-pink);"></i>
+              <span>Kirim Ping 💕</span>
+            </button>
+            <button type="button" class="sidebar-menu-btn" id="btn-sidebar-locate-partner">
+              <i data-lucide="heart" style="width: 18px; height: 18px; color: var(--romantic-pink);"></i>
+              <span>Cari Pasangan</span>
+            </button>
+            <button type="button" class="sidebar-menu-btn" id="btn-sidebar-locate-me">
+              <i data-lucide="crosshair" style="width: 18px; height: 18px; color: var(--cyan-accent);"></i>
+              <span>Posisi Saya</span>
+            </button>
+            <button type="button" class="sidebar-menu-btn" id="btn-sidebar-fit-both">
+              <i data-lucide="users" style="width: 18px; height: 18px; color: var(--soft-purple);"></i>
+              <span>Tampilkan Berdua</span>
+            </button>
+            <button type="button" class="sidebar-menu-btn" id="btn-sidebar-history-trail">
+              <i data-lucide="route" style="width: 18px; height: 18px; color: var(--cyan-accent);"></i>
+              <span>Jejak Riwayat</span>
+            </button>
+            <button type="button" class="sidebar-menu-btn" id="btn-sidebar-sync-gps">
+              <i data-lucide="refresh-cw" style="width: 18px; height: 18px; color: #10B981;"></i>
+              <span>Segarkan GPS</span>
+            </button>
+          </div>
+        </div>
 
         <!-- Card A: Distance Between Us -->
         <div class="telemetry-card distance-card">
@@ -278,7 +316,7 @@
           </div>
         </div>
 
-        <!-- Card B: Partner Telemetry -->
+        <!-- Card B: Partner Telemetry (Google Maps Live Style) -->
         <div class="telemetry-card partner-card">
           <div class="telemetry-profile-header">
             <img id="partner-avatar-img" class="telemetry-avatar" src="assets/avatars/avatar-2.svg" alt="Partner">
@@ -286,13 +324,24 @@
               <div id="partner-display-name" style="font-size: 1.05rem; font-weight: 700; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
                 Pasangan Anda
               </div>
-              <div id="partner-status-badge" class="status-badge recent" style="margin-top: 0.2rem; font-size: 0.72rem;">
-                <span class="status-dot"></span> Mencari sinyal...
+              <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.2rem;">
+                <div id="partner-status-badge" class="status-badge recent" style="font-size: 0.72rem;">
+                  <span class="status-dot"></span> Mencari sinyal...
+                </div>
+                <div id="partner-movement-badge" class="movement-badge idle">
+                  Diam
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="telemetry-grid">
+          <!-- Alamat / Tempat Nyata Pasangan (Reverse Geocoding) -->
+          <div class="partner-address-box">
+            <i data-lucide="map-pin" style="width: 15px; height: 15px; color: var(--romantic-pink); flex-shrink: 0;"></i>
+            <span id="partner-address-text" class="partner-address-text">Mencari alamat lokasi pasangan...</span>
+          </div>
+
+          <div class="telemetry-grid" style="margin-top: 0.75rem;">
             <div class="telemetry-item" style="grid-column: span 2;">
               <span class="telemetry-label">Koordinat Satelit</span>
               <span id="partner-coordinates" class="telemetry-val">--</span>

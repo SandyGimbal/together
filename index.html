@@ -290,6 +290,10 @@
     <nav class="nav-links">
       <a href="#features" class="nav-link">Fitur</a>
       <a href="#how-it-works" class="nav-link">Cara Kerja</a>
+      <button type="button" class="btn btn-outline-pwa btn-sm btn-install-pwa" id="btn-pwa-nav" style="border-radius: var(--radius-full); border: 1px solid var(--cyan-accent); color: var(--cyan-accent); background: rgba(54, 217, 255, 0.1); display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; padding: 0.45rem 0.85rem;">
+        <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+        <span>Pasang App</span>
+      </button>
       <a href="login.html" class="btn btn-secondary btn-sm">Masuk</a>
       <a href="register.html" class="btn btn-primary btn-sm">Mulai Gratis</a>
     </nav>
@@ -324,6 +328,10 @@
         <i data-lucide="heart" style="width: 20px; height: 20px; fill: #fff;"></i>
         <span>Hubungkan Pasangan</span>
       </a>
+      <button type="button" class="btn btn-secondary btn-lg btn-install-pwa" id="btn-pwa-hero" style="border-color: var(--cyan-accent); color: var(--cyan-accent); background: rgba(54, 217, 255, 0.1);">
+        <i data-lucide="download" style="width: 20px; height: 20px;"></i>
+        <span>📲 Unduh / Pasang App</span>
+      </button>
       <a href="dashboard.html" class="btn btn-secondary btn-lg">
         <i data-lucide="compass" style="width: 20px; height: 20px;"></i>
         <span>Buka Live Dashboard</span>
@@ -447,6 +455,67 @@
       &copy; 2026 TOGETHER Platform. Citra Satelit resmi oleh Esri & OpenStreetMap.
     </p>
   </footer>
+
+  <!-- Modal Panduan Unduh & Pasang PWA -->
+  <div id="pwa-install-modal" class="custom-modal-overlay">
+    <div class="custom-modal-box" style="max-width: 520px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(54, 217, 255, 0.15); display: flex; align-items: center; justify-content: center; color: var(--cyan-accent);">
+            <i data-lucide="download" style="width: 20px; height: 20px;"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 700;">Pasang Aplikasi TOGETHER</h3>
+        </div>
+        <button id="btn-close-pwa-modal" class="modal-close-btn">&times;</button>
+      </div>
+
+      <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+        TOGETHER adalah <strong>Progressive Web App (PWA)</strong> resmi. Anda dan pasangan dapat memasangnya langsung di HP (Android/iOS) atau Laptop tanpa perlu Play Store, hemat baterai, dan bisa langsung dibuka dari layar utama HP.
+      </p>
+
+      <!-- 1-Tap Trigger (if supported) -->
+      <div id="pwa-native-trigger-box" style="margin-bottom: 1.5rem;">
+        <button type="button" id="btn-trigger-native-install" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem;">
+          <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+          <span>Pasang Sekarang (1-Klik)</span>
+        </button>
+      </div>
+
+      <!-- Step by step guide tabs -->
+      <div style="background: rgba(8, 14, 26, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.2rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--cyan-accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.8rem;">
+          📱 Panduan Pasang Manual di Browser HP:
+        </div>
+        
+        <div style="margin-bottom: 1rem; border-left: 3px solid #36D9FF; padding-left: 0.75rem;">
+          <div style="font-size: 0.92rem; font-weight: 700; color: #fff;">1. Android (Brave / Google Chrome / Edge)</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+            Ketuk ikon <strong>titik tiga (⋮)</strong> di sudut kanan atas browser &rarr; pilih <strong>"Tambahkan ke Layar Utama"</strong> atau <strong>"Instal Aplikasi"</strong>.
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1rem; border-left: 3px solid #FF75B8; padding-left: 0.75rem;">
+          <div style="font-size: 0.92rem; font-weight: 700; color: #fff;">2. iPhone / iPad (Safari)</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+            Ketuk tombol <strong>Bagikan (Share ⎋)</strong> di bilah bawah &rarr; gulir ke bawah &rarr; pilih <strong>"Tambah ke Layar Utama" (Add to Home Screen)</strong>.
+          </div>
+        </div>
+
+        <div style="border-left: 3px solid #9277FF; padding-left: 0.75rem;">
+          <div style="font-size: 0.92rem; font-weight: 700; color: #fff;">3. Komputer / Laptop (Desktop Chrome / Brave)</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+            Klik ikon <strong>Instal (⊕)</strong> di sebelah kanan bilah alamat (URL bar) browser di atas.
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; text-align: center;">
+        <button id="btn-dismiss-pwa-modal" class="btn btn-secondary btn-sm" style="width: 100%;">
+          Mengerti
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="js/firebase-config.js"></script>
